@@ -3,65 +3,84 @@ import numpy as np
 import json
 import joblib
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg')  # 非交互模式
 import matplotlib.pyplot as plt
 import optuna
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 import os
 
-matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文字体
-matplotlib.rcParams['axes.unicode_minus'] = False    # 解决负号显示问题
-
+# 解决中文和负号显示问题
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 # ===============================
-# 1. 读取配置文件
+# 路径配置
 # ===============================
-with open("XGBoostModel_args.json", "r", encoding="utf-8") as f:
+# 脚本所在目录
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 工程根目录 = 脚本所在目录的上上级
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+
+def resolve_path(path_str, base="project"):
+    """
+    解析路径：
+    base="project"  -> 相对工程根目录解析（适合数据文件）
+    base="script"   -> 相对脚本目录解析（适合模型文件、配置文件）
+    """
+    if os.path.isabs(path_str):
+        return os.path.normpath(path_str)
+    if base == "project":
+        return os.path.normpath(os.path.join(PROJECT_ROOT, path_str))
+    elif base == "script":
+        return os.path.normpath(os.path.join(BASE_DIR, path_str))
+
+# ===============================
+# 读取配置文件
+# ===============================
+config_path = resolve_path("XGBoostModel_args.json", base="script")
+with open(config_path, "r", encoding="utf-8") as f:
     config = json.load(f)
 
-training_file = config["training"]
-predict_file = config["predict"]
+# 数据路径（相对工程根目录）
+training_file = resolve_path(config["training"], base="project")
+predict_file = resolve_path(config["predict"], base="project")
+# 模型路径（相对脚本目录）
+model_filename = resolve_path("FinalModel", base="script")
+
 model_only = config["model"]
 auto_tune = config.get("auto_tune", False)
 xgb_params = config["params"]
 
-model_filename = "FinalModel"
-
 # ===============================
-# 2. 数据处理函数
+# 数据处理函数
 # ===============================
 def load_and_process_data(csv_path):
-    """
-    读取股票数据并构造特征
-    """
     df = pd.read_csv(csv_path)
-    df = df.sort_values(by="trade_date")  # 按日期排序
+    df = df.sort_values(by="trade_date")
 
-    # 生成简单的技术指标特征
+    # 简单特征工程
     df["ma5"] = df["close"].rolling(window=5).mean()
     df["ma10"] = df["close"].rolling(window=10).mean()
     df["return_1d"] = df["close"].pct_change(1)
     df["vol_ma5"] = df["vol"].rolling(window=5).mean()
 
-    # 删除缺失值
     df = df.dropna().reset_index(drop=True)
 
-    # 特征与目标
-    feature_cols = ["open", "high", "low", "close", "vol", "amount", "ma5", "ma10", "return_1d", "vol_ma5"]
+    feature_cols = ["open", "high", "low", "close", "vol", "amount",
+                    "ma5", "ma10", "return_1d", "vol_ma5"]
     X = df[feature_cols]
     y = df["close"]
 
     return X, y, df["trade_date"], df
 
 # ===============================
-# 3. 模型训练 & 保存
+# 训练阶段
 # ===============================
 if not model_only:
     print("=== 开始加载训练数据 ===")
     X, y, dates, df_full = load_and_process_data(training_file)
 
-    # 划分 90% 训练集 10% 测试集
     split_index = int(len(X) * 0.9)
     X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
     y_train, y_test = y.iloc[:split_index], y.iloc[split_index:]
@@ -71,7 +90,6 @@ if not model_only:
 
     if auto_tune:
         print("=== 启动 Optuna 自动调参 ===")
-
 
         def objective(trial):
             params = {
@@ -87,39 +105,33 @@ if not model_only:
             preds = model.predict(X_test)
             return r2_score(y_test, preds)
 
-
         study = optuna.create_study(direction="maximize")
-        study.optimize(objective, n_trials=30, show_progress_bar=True)  # 30次搜索
+        study.optimize(objective, n_trials=30, show_progress_bar=True)
 
         print("最佳参数:", study.best_params)
         print("最佳 R²:", study.best_value)
 
-        # 更新配置
+        # 更新并保存最佳参数
         xgb_params.update(study.best_params)
         config["params"] = xgb_params
-        with open("XGBoostModel_args.json", "w", encoding="utf-8") as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=4, ensure_ascii=False)
         print("已将最佳参数写回 XGBoostModel_args.json")
 
-    # 训练模型
     print("=== 开始训练 XGBoost 模型 ===")
     model = XGBRegressor(**xgb_params)
     model.fit(X_train, y_train)
 
-    # 保存模型
     joblib.dump(model, model_filename)
     print(f"模型已保存到 {model_filename}")
 
-    # 测试集预测
+    # 测试集评估
     y_pred = model.predict(X_test)
-
-    # 评价指标
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
     print(f"测试集 MSE: {mse:.4f}")
     print(f"测试集 R²: {r2:.4f}")
 
-    # 可视化预测结果
     plt.figure(figsize=(12, 6))
     plt.plot(dates_test, y_test, label="真实收盘价", color="blue")
     plt.plot(dates_test, y_pred, label="预测收盘价", color="red", linestyle="--")
@@ -129,8 +141,8 @@ if not model_only:
     plt.legend()
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig("train_test_prediction.png", dpi=300)  # 保存训练预测对比图
-    plt.close()  # 关闭图，释放内存
+    plt.savefig(resolve_path("train_test_prediction.png", base="script"), dpi=300)
+    plt.close()
 
 else:
     print("=== 只加载模型进行预测 ===")
@@ -139,13 +151,12 @@ else:
     model = joblib.load(model_filename)
 
 # ===============================
-# 4. 最终预测阶段
+# 最终预测阶段
 # ===============================
 print("=== 加载预测数据 ===")
 X_pred, y_true, dates_pred, df_pred_full = load_and_process_data(predict_file)
 y_pred_final = model.predict(X_pred)
 
-# 如果预测文件包含真实值，则计算 MSE 和 R²
 if y_true is not None and len(y_true) > 0:
     mse_pred = mean_squared_error(y_true, y_pred_final)
     r2_pred = r2_score(y_true, y_pred_final)
@@ -154,7 +165,6 @@ if y_true is not None and len(y_true) > 0:
 else:
     print("预测数据集中未提供真实值，无法计算 MSE 和 R²")
 
-# 可视化最终预测效果
 plt.figure(figsize=(12, 6))
 plt.plot(dates_pred, y_true, label="真实收盘价", color="blue")
 plt.plot(dates_pred, y_pred_final, label="预测收盘价", color="orange", linestyle="--")
@@ -164,5 +174,5 @@ plt.title("最终预测结果可视化")
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig("final_prediction.png", dpi=300)  # 保存最终预测图
+plt.savefig(resolve_path("final_prediction.png", base="script"), dpi=300)
 plt.close()

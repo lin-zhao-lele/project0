@@ -1,0 +1,14 @@
+{
+    "training": "data\\raw\\600519.SH_20150101_20241231_1day_A.csv",
+    "predict": "data\\raw\\600519.SH_20250101_20250730_1day_A.csv",
+    "model": false,
+    "auto_tune": true,
+    "params": {
+        "n_estimators": 803,
+        "max_depth": 3,
+        "learning_rate": 0.03997733621017423,
+        "subsample": 0.6233997662580201,
+        "colsample_bytree": 0.7316419433120187,
+        "random_state": 42
+    }
+}
