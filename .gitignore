@@ -1,6 +1,10 @@
 # Data
 /data/
 
+# pic
+/module/visualization/pic/
+*.png
+
 # Mac OS-specific storage files
 .DS_Store
 .idea
