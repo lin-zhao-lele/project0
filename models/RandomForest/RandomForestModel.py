@@ -9,10 +9,16 @@ import optuna
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 import os
+import sys
 
-# 解决中文乱码和负号问题
-matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-matplotlib.rcParams['axes.unicode_minus'] = False
+# 判断操作系统并设置字体
+# 解决中文和负号显示问题
+if sys.platform == 'darwin':  # macOS
+    plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Arial Unicode MS'] # 首选苹方，备选Arial Unicode MS（更通用，但可能需要系统安装）
+    plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像时负号'-'显示为方块的问题
+elif sys.platform == 'win32':  # Windows
+    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei'] # Windows 上使用微软雅黑
+    plt.rcParams['axes.unicode_minus'] = False
 
 # ===============================
 # 路径配置
