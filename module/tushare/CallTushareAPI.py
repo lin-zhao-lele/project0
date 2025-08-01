@@ -2,6 +2,7 @@ import os
 import json
 import tushare as ts
 import pandas as pd
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 当前脚本所在目录
 
@@ -26,7 +27,10 @@ def get_fields(field_type):
         raise ValueError("field_type 必须是 A 或 B")
 
 def get_data(config):
-    token = config["token"]
+    # token = config["token"]
+    # 获取 TUSHARE_TOKEN
+    load_dotenv()
+    token = os.getenv('TUSHARE_TOKEN')
     ts.set_token(token)
     pro = ts.pro_api()
 

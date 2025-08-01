@@ -4,11 +4,11 @@
     "model": false,
     "auto_tune": true,
     "params": {
-        "n_estimators": 836,
-        "max_depth": 5,
-        "learning_rate": 0.019133257677925133,
-        "subsample": 0.6088440980501735,
-        "colsample_bytree": 0.9279927236428871,
+        "n_estimators": 827,
+        "max_depth": 7,
+        "learning_rate": 0.017433327820732945,
+        "subsample": 0.6662564249453313,
+        "colsample_bytree": 0.999870675569372,
         "random_state": 42
     }
 }
