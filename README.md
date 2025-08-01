@@ -21,6 +21,9 @@ The first project for Financial Analysis
 ├── docs               <- A default mkdocs project; see www.mkdocs.org for details
 │
 ├── models             <- Trained and serialized models, model predictions, or model summaries
+│   ├── XGBoost        <- XGBoost Model.
+│   ├── RandomForest   <- RandomForest Model.
+│
 │
 ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
 │                         the creator's initials, and a short `-` delimited description, e.g.
@@ -36,6 +39,7 @@ The first project for Financial Analysis
 │
 ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
 │                         generated with `pip freeze > requirements.txt`
+│                         pip install -r requirements.txt
 │
 ├── setup.cfg          <- Configuration file for flake8
 │
