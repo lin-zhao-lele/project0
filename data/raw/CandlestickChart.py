@@ -4,8 +4,14 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# 解决中文乱码和负号问题
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+matplotlib.rcParams['axes.unicode_minus'] = False
 
 # 美化 Matplotlib / Seaborn 样式
 plt.style.use("seaborn-v0_8-darkgrid")
