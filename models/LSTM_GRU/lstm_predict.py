@@ -23,19 +23,25 @@ plt.rcParams['axes.unicode_minus'] = False
 # ========== 路径配置 ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
 
 def resolve_path(path_str, base="project"):
     if os.path.isabs(path_str):
         return os.path.normpath(path_str)
-    return os.path.normpath(os.path.join(PROJECT_ROOT if base == "project" else BASE_DIR, path_str))
+    if base == "project":
+        return os.path.normpath(os.path.join(PROJECT_ROOT, path_str))
+    elif base == "script":
+        return os.path.normpath(os.path.join(BASE_DIR, path_str))
+    elif base == "data":
+        return os.path.normpath(os.path.join(DATA_DIR, path_str))
 
 # ========== 加载配置 ==========
 config_path = resolve_path("Model_args.json", base="script")
 with open(config_path, "r", encoding="utf-8") as f:
     config = json.load(f)
 
-training_path = resolve_path(config["training"], base="project")
-predict_path = resolve_path(config["predict"], base="project")
+training_path = resolve_path(config["training"], base="data")
+predict_path = resolve_path(config["predict"], base="data")
 load_only = config["model"]
 auto_tune = config["auto_tune"]
 params = config["params"]

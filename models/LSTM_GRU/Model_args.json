@@ -1,16 +1,16 @@
 {
-    "training": "data\\raw\\600519.SH_20010827_20241231_1day_A.csv",
-    "predict": "data\\raw\\600519.SH_20250101_20250730_1day_A.csv",
-    "model": true,
+    "training": "600519.SH_20010827_20241231_1day_A.csv",
+    "predict": "600519.SH_20250101_20250730_1day_A.csv",
+    "model": false,
     "auto_tune": true,
     "params": {
         "window_size": 30,
         "epochs": 33,
         "batch_size": 16,
-        "hidden_units": 48,
+        "hidden_units": 64,
         "use_gru": false,
         "units": 68,
         "dropout": 0.15387392786848297,
-        "lr": 0.001409969533056025
+        "lr": 0.009018474436762658
     }
 }
