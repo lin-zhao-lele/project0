@@ -79,9 +79,9 @@ def main():
     auto_tune = config.get("auto_tune", False)
     rf_params = config.get("params", {})
 
-    # 提取并剥离 window_size，防止传入模型
-    window_size = rf_params.get("window_size", 5)
-    rf_params_model = {k: v for k, v in rf_params.items() if k != "window_size"}
+    # 提取参数
+    window_size = rf_params.pop("window_size", 5)  # 从原始params中移除
+    rf_params_model = rf_params.copy()  # 避免污染原始config["params"]
 
     if not model_only:
         print("=== 加载训练数据，使用滑动窗口处理 ===")
@@ -118,7 +118,11 @@ def main():
             print("最佳 R²:", study.best_value)
 
             rf_params_model.update(study.best_params)
-            config["params"].update(rf_params_model)
+
+            # 写入 config["params"]，包含 window_size
+            config["params"] = rf_params_model.copy()
+            config["params"]["window_size"] = window_size
+
             with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
             print(f"已将最佳参数写回 {config_path}")

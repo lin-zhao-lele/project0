@@ -61,7 +61,7 @@ def load_and_process_data(csv_path):
 X_pred, y_true, dates_pred = load_and_process_data(predict_file)
 
 # 加载模型
-xgb_model_path = resolve_path("models/XGBoost/FinalModel", base="project")
+xgb_model_path = resolve_path("models/XGBoost/FinalModel_XGBoost", base="project")
 rf_model_path = resolve_path("models/RandomForest/FinalModel_RF", base="project")
 
 xgb_model = joblib.load(xgb_model_path)

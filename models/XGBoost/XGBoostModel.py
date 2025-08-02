@@ -60,7 +60,7 @@ with open(config_path, "r", encoding="utf-8") as f:
 training_file = resolve_path(config["training"], base="data")
 predict_file = resolve_path(config["predict"], base="data")
 # 模型路径（相对脚本目录）
-model_filename = resolve_path("FinalModel", base="script")
+model_filename = resolve_path("FinalModel_XGBoost", base="script")
 
 model_only = config["model"]
 auto_tune = config.get("auto_tune", False)
