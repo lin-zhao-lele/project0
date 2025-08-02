@@ -9,6 +9,8 @@ import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
 import sys
 
+# 调用 RandomForest 和 XGBoost 两个模型 自动混合权重
+
 # 判断操作系统并设置字体
 # 解决中文和负号显示问题
 if sys.platform == 'darwin':  # macOS
