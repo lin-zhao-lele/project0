@@ -6,6 +6,8 @@
 # results
 /module/visualization/pic/
 /models/LSTM_GRU/results/
+
+# pics
 *.png
 
 # Mac OS-specific storage files
