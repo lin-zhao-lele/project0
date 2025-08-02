@@ -111,7 +111,10 @@ with torch.no_grad():
 
 mse_val = mean_squared_error(y_val, y_pred_val)
 r2_val = r2_score(y_val, y_pred_val)
-print(f"\n[Test Set] MSE: {mse_val:.4f}, R2: {r2_val:.4f}")
+
+print(f"[测试集] MSE: {mse_val:.4f}")
+print(f"[测试集] R²: {r2_val:.4f}")
+
 
 # ========== 未来数据预测 ==========
 future_data, _, raw_df = load_and_preprocess(predict_path, scaler)
@@ -123,7 +126,9 @@ with torch.no_grad():
 
 mse_future = mean_squared_error(y_future, y_pred_future)
 r2_future = r2_score(y_future, y_pred_future)
-print(f"[Prediction Set] MSE: {mse_future:.4f}, R2: {r2_future:.4f}")
+print(f"[预测集] MSE: {mse_future:.4f})")
+print(f"[预测集] R²: {r2_future:.4f})")
+
 
 # ========== 保存结果 ==========
 trade_dates = raw_df["trade_date"].values[params["window_size"]:]

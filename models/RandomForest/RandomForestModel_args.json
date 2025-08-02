@@ -4,9 +4,9 @@
     "model": false,
     "auto_tune": true,
     "params": {
-        "n_estimators": 328,
-        "max_depth": 15,
-        "min_samples_split": 4,
+        "n_estimators": 182,
+        "max_depth": 17,
+        "min_samples_split": 5,
         "min_samples_leaf": 2,
         "random_state": 42,
         "n_jobs": -1
