@@ -1,7 +1,7 @@
 {
     "token": "",
-    "stock_code": "002594.SZ",
-    "start_date": "20150101",
+    "stock_code": "600519.SH",
+    "start_date": "19980101",
     "end_date": "20241231",
     "freq": "1day",
     "field_type": "A"

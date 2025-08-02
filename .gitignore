@@ -1,8 +1,11 @@
 # Data
 /data/
 
-# pic
+
+
+# results
 /module/visualization/pic/
+/models/LSTM_GRU/results/
 *.png
 
 # Mac OS-specific storage files
