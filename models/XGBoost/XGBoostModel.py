@@ -30,6 +30,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
 DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
 
+print("=== BASE_DIR ===" + BASE_DIR)
+print("=== PROJECT_ROOT ===" + PROJECT_ROOT)
+print("=== DATA_DIR ===" + DATA_DIR)
+
 def resolve_path(path_str, base="project"):
     """
     解析路径：

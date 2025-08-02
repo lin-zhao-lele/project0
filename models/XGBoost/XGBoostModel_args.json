@@ -1,14 +1,14 @@
 {
     "training": "600519.SH_20150101_20241231_1day_A.csv",
     "predict": "600519.SH_20250101_20250730_1day_A.csv",
-    "model": false,
+    "model": true,
     "auto_tune": true,
     "params": {
-        "n_estimators": 795,
-        "max_depth": 4,
-        "learning_rate": 0.03557224805759034,
-        "subsample": 0.5620137022329298,
-        "colsample_bytree": 0.7770380280880683,
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.03179259469081303,
+        "subsample": 0.5033285619869864,
+        "colsample_bytree": 0.71738266857983,
         "random_state": 42
     }
 }

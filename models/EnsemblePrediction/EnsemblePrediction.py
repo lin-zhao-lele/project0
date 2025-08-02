@@ -7,15 +7,23 @@ matplotlib.use('Agg')  # 非交互模式
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
+import sys
 
+# 判断操作系统并设置字体
+# 解决中文和负号显示问题
+if sys.platform == 'darwin':  # macOS
+    plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Arial Unicode MS'] # 首选苹方，备选Arial Unicode MS（更通用，但可能需要系统安装）
+    plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像时负号'-'显示为方块的问题
+elif sys.platform == 'win32':  # Windows
+    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei'] # Windows 上使用微软雅黑
+    plt.rcParams['axes.unicode_minus'] = False
 
-# 解决中文乱码和负号问题
-matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-matplotlib.rcParams['axes.unicode_minus'] = False
-
-# 基础路径
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 脚本所在目录
-PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))  # 工程根目录
+# 脚本所在目录
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 工程根目录 = 脚本所在目录的上上级
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
 
 def resolve_path(path_str, base="project"):
     if os.path.isabs(path_str):
@@ -24,11 +32,15 @@ def resolve_path(path_str, base="project"):
         return os.path.normpath(os.path.join(PROJECT_ROOT, path_str))
     elif base == "script":
         return os.path.normpath(os.path.join(BASE_DIR, path_str))
+    elif base == "data":
+        return os.path.normpath(os.path.join(DATA_DIR, path_str))
+
 
 # 读取配置文件，统一用 XGBoost 的预测数据路径
-with open(resolve_path("XGBoost/XGBoostModel_args.json", base="script"), "r", encoding="utf-8") as f:
+XGBoostModeJsonlDIR = os.path.join(os.path.join(os.path.join(PROJECT_ROOT, "models"), "XGBoost"), "XGBoostModel_args.json")
+with open(XGBoostModeJsonlDIR, "r", encoding="utf-8") as f:
     config = json.load(f)
-predict_file = resolve_path("project0\\"+config["predict"], base="project")
+predict_file = resolve_path(config["predict"], base="data")
 
 # 加载预测数据（和之前一样的处理逻辑）
 def load_and_process_data(csv_path):
@@ -48,8 +60,8 @@ def load_and_process_data(csv_path):
 X_pred, y_true, dates_pred = load_and_process_data(predict_file)
 
 # 加载模型
-xgb_model_path = resolve_path("XGBoost/FinalModel", base="script")
-rf_model_path = resolve_path("RandomForest/FinalModel_RF", base="script")
+xgb_model_path = resolve_path("models/XGBoost/FinalModel", base="project")
+rf_model_path = resolve_path("models/RandomForest/FinalModel_RF", base="project")
 
 xgb_model = joblib.load(xgb_model_path)
 rf_model = joblib.load(rf_model_path)
