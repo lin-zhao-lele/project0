@@ -37,8 +37,8 @@ def resolve_path(path_str, base="project"):
         return os.path.normpath(os.path.join(DATA_DIR, path_str))
 
 
-# 读取配置文件，统一用 XGBoost 的预测数据路径
-XGBoostModeJsonlDIR = os.path.join(os.path.join(os.path.join(PROJECT_ROOT, "models"), "XGBoost"), "XGBoostModel_args.json")
+# 读取配置文件
+XGBoostModeJsonlDIR = resolve_path("EnsemblePrediction_args.json", base="script")
 with open(XGBoostModeJsonlDIR, "r", encoding="utf-8") as f:
     config = json.load(f)
 predict_file = resolve_path(config["predict"], base="data")
