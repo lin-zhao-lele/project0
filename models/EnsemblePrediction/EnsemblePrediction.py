@@ -22,7 +22,6 @@ elif sys.platform == 'win32':  # Windows
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 工程根目录 = 脚本所在目录的上上级
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
-PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
 DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
 
 def resolve_path(path_str, base="project"):
