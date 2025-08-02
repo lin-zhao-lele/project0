@@ -119,14 +119,18 @@ if not model_only:
         print("最佳 R²:", study.best_value)
 
         xgb_params.update(study.best_params)
-        xgb_params["window_size"] = window_size  # 保持兼容性写回参数
-        config["params"] = xgb_params
+        # 写入配置文件时单独附加 window_size，不影响模型用参数
+        params_for_config = xgb_params.copy()
+        params_for_config["window_size"] = window_size
+        config["params"] = params_for_config
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=4, ensure_ascii=False)
         print("已将最佳参数写回配置文件")
 
     print("=== 开始训练 XGBoost 模型 ===")
-    model = XGBRegressor(**xgb_params)
+    # 排除非 XGBRegressor 支持的参数
+    xgb_model_params = {k: v for k, v in xgb_params.items() if k in XGBRegressor().get_params()}
+    model = XGBRegressor(**xgb_model_params)
     model.fit(X_train, y_train)
     joblib.dump(model, model_filename)
     print(f"模型已保存到 {model_filename}")
