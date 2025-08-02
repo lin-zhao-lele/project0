@@ -6,9 +6,14 @@
 # results
 /module/visualization/pic/
 /models/LSTM_GRU/results/
+/models/predictors/results/
 
 # pics
 *.png
+
+# models
+*.pt
+*.pkl
 
 # Mac OS-specific storage files
 .DS_Store

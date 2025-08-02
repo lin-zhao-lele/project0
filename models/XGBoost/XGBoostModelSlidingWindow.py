@@ -68,8 +68,14 @@ def load_and_process_data(csv_path, window_size=5):
     df["vol_ma5"] = df["vol"].rolling(window=5).mean()
     df = df.dropna().reset_index(drop=True)
 
-    feature_cols = ["open", "high", "low", "close", "vol", "amount",
-                    "ma5", "ma10", "return_1d", "vol_ma5"]
+    # 动态生成特征列：排除 close, ts_code, trade_date
+    exclude_cols = {"ts_code", "trade_date"}
+    feature_cols = [col for col in df.columns if col not in exclude_cols]
+
+    # 手动构建feature_cols
+    # feature_cols = ["open", "high", "low", "close", "vol", "amount",
+    #                 "ma5", "ma10", "return_1d", "vol_ma5"]
+
     features = df[feature_cols].values
     labels = df["close"].values
     dates = df["trade_date"].values

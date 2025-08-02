@@ -53,7 +53,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def load_and_preprocess(path, scaler=None):
     df_raw = pd.read_csv(path)
     df_raw = df_raw.sort_values("trade_date")
-    df = df_raw[["open", "high", "low", "close", "vol", "amount"]]
+
+    # 排除指定列
+    exclude_cols = {"ts_code", "trade_date"}
+    df = df_raw[[col for col in df_raw.columns if col not in exclude_cols]]
+    # df = df_raw[["open", "high", "low", "close", "vol", "amount"]]
+
     if scaler is None:
         scaler = MinMaxScaler()
         scaled = scaler.fit_transform(df)

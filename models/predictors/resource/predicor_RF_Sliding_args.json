@@ -1,0 +1,7 @@
+{
+    "predict": "600519.SH_20250101_20250730_1day_A.csv",
+    "predict_length": 20,
+    "params": {
+        "window_size": 5
+    }
+}
