@@ -22,6 +22,7 @@ elif sys.platform == 'win32':  # Windows
 # 路径相关
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
 
 def resolve_path(path_str, base="project"):
     if os.path.isabs(path_str):
@@ -30,6 +31,8 @@ def resolve_path(path_str, base="project"):
         return os.path.normpath(os.path.join(PROJECT_ROOT, path_str))
     elif base == "script":
         return os.path.normpath(os.path.join(BASE_DIR, path_str))
+    elif base == "data":
+        return os.path.normpath(os.path.join(DATA_DIR, path_str))
 
 # 滑动窗口构造序列数据
 def create_sequences_rf(df, window_size, feature_cols, target_col='close'):
@@ -64,12 +67,12 @@ def load_and_process_data_sliding(csv_path, window_size):
 
 def main():
     # 读取配置文件
-    config_path = resolve_path("RandomForestModel_args.json", base="script")
+    config_path = resolve_path("RandomForestModelSlidingWindow_args.json", base="script")
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
 
-    training_file = resolve_path(config["training"], base="project")
-    predict_file = resolve_path(config["predict"], base="project")
+    training_file = resolve_path(config["training"], base="data")
+    predict_file = resolve_path(config["predict"], base="data")
     model_filename = resolve_path("FinalModel_RF_sliding.pkl", base="script")
 
     model_only = config.get("model", False)

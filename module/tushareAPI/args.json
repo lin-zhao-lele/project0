@@ -1,8 +1,8 @@
 {
     "token": "",
     "stock_code": "600519.SH",
-    "start_date": "19980101",
-    "end_date": "20241231",
+    "start_date": "20250101",
+    "end_date": "20250730",
     "freq": "1day",
     "field_type": "A"
 }
