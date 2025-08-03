@@ -1,14 +1,14 @@
 {
-    "training": "600519.SH_20150101_20241231_1day_A.csv",
-    "predict": "600519.SH_20250101_20250730_1day_A.csv",
-    "model": false,
+    "training": "600519.SH_20150101_20241231_daily_adjusted.csv",
+    "predict": "600519.SH_20250101_20250730_daily_adjusted.csv",
+    "model": true,
     "auto_tune": true,
     "params": {
-        "n_estimators": 996,
-        "max_depth": 7,
-        "learning_rate": 0.06748417144466258,
-        "subsample": 0.6209444226030653,
-        "colsample_bytree": 0.5790500817465,
+        "n_estimators": 208,
+        "max_depth": 8,
+        "learning_rate": 0.09961726878921259,
+        "subsample": 0.8147783680122334,
+        "colsample_bytree": 0.753901125957108,
         "random_state": 42
     }
 }

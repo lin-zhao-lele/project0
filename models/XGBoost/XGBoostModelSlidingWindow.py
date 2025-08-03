@@ -22,7 +22,7 @@ elif sys.platform == 'win32':
 # 路径设置
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
-DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "processed")
 
 def resolve_path(path_str, base="project"):
     if os.path.isabs(path_str):
@@ -69,12 +69,16 @@ def load_and_process_data(csv_path, window_size=5):
     df = df.dropna().reset_index(drop=True)
 
     # 动态生成特征列：排除 close, ts_code, trade_date
-    exclude_cols = {"ts_code", "trade_date"}
-    feature_cols = [col for col in df.columns if col not in exclude_cols]
+    # exclude_cols = {"ts_code", "trade_date", "close"}
+    # feature_cols = [col for col in df.columns if col not in exclude_cols]
 
     # 手动构建feature_cols
-    # feature_cols = ["open", "high", "low", "close", "vol", "amount",
+    # feature_cols = ["open", "high", "low", "vol", "amount",
     #                 "ma5", "ma10", "return_1d", "vol_ma5"]
+
+    feature_cols = ['open', 'high', 'low', 'vol', 'amount',
+     'turnover_rate', 'turnover_rate_f', 'volume_ratio',
+     'ma5', 'ma10', 'return_1d', 'vol_ma5']
 
     features = df[feature_cols].values
     labels = df["close"].values
@@ -181,5 +185,5 @@ plt.title("最终预测结果可视化")
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig(resolve_path("final_prediction.png", base="script"), dpi=300)
+plt.savefig(resolve_path("final_prediction_Sliding.png", base="script"), dpi=300)
 plt.close()

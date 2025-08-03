@@ -7,12 +7,28 @@ from sklearn.metrics import mean_squared_error
 import optuna
 
 # 滑动窗口构造序列数据
-def create_sequences(data, window_size):
+import numpy as np
+
+def create_sequences(data, window_size, target_col="close"):
+    """
+    data: DataFrame 或 ndarray
+    window_size: 滑动窗口大小
+    target_col: 如果是 DataFrame，传列名；如果是 ndarray，target_col 是列索引（如 -1 表示最后一列）
+    """
     X, y = [], []
+
+    # 判断是否是 DataFrame
+    is_df = hasattr(data, "iloc")
+
     for i in range(len(data) - window_size):
-        X.append(data[i:i+window_size])
-        y.append(data[i+window_size][3])  # 第4列是close
+        if is_df:
+            X.append(data.iloc[i:i+window_size].values)
+            y.append(data.iloc[i+window_size][target_col])
+        else:
+            X.append(data[i:i+window_size])
+            y.append(data[i+window_size][target_col if isinstance(target_col, int) else -1])  # 默认最后一列
     return np.array(X), np.array(y)
+
 
 # PyTorch LSTM 模型类
 class LSTMModel(nn.Module):

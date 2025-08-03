@@ -28,7 +28,7 @@ elif sys.platform == 'win32':  # Windows
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 工程根目录 = 脚本所在目录的上上级
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
-DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "processed")
 
 print("=== BASE_DIR ===" + BASE_DIR)
 print("=== PROJECT_ROOT ===" + PROJECT_ROOT)
@@ -82,12 +82,16 @@ def load_and_process_data(csv_path):
     df = df.dropna().reset_index(drop=True)
 
     # 动态生成特征列：排除 close, ts_code, trade_date
-    exclude_cols = {"ts_code", "trade_date"}
-    feature_cols = [col for col in df.columns if col not in exclude_cols]
+    # exclude_cols = {"ts_code", "trade_date", "close"}
+    # feature_cols = [col for col in df.columns if col not in exclude_cols]
 
     # 手动构建feature_cols
-    # feature_cols = ["open", "high", "low", "close", "vol", "amount",
+    # feature_cols = ["open", "high", "low", "vol", "amount",
     #                 "ma5", "ma10", "return_1d", "vol_ma5"]
+
+    feature_cols = ['open', 'high', 'low', 'vol', 'amount',
+     'turnover_rate', 'turnover_rate_f', 'volume_ratio',
+     'ma5', 'ma10', 'return_1d', 'vol_ma5']
 
     X = df[feature_cols]
     y = df["close"]

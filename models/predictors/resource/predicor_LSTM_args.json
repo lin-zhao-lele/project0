@@ -1,13 +1,13 @@
 {
-    "predict": "600519.SH_20250101_20250730_1day_A.csv",
+    "predict": "600519.SH_20250101_20250730_daily_adjusted.csv",
     "params": {
         "window_size": 30,
         "epochs": 33,
-        "batch_size": 16,
-        "hidden_units": 32,
+        "batch_size": 32,
+        "hidden_units": 128,
         "use_gru": false,
         "units": 68,
         "dropout": 0.15387392786848297,
-        "lr": 0.008187296885701889
+        "lr": 0.002827220587875542
     }
 }

@@ -1,16 +1,16 @@
 {
-    "training": "600519.SH_20010827_20241231_1day_A.csv",
-    "predict": "600519.SH_20250101_20250730_1day_A.csv",
+    "training": "600519.SH_20150101_20241231_daily_adjusted.csv",
+    "predict": "600519.SH_20250101_20250730_daily_adjusted.csv",
     "model": true,
     "auto_tune": true,
     "params": {
         "window_size": 30,
         "epochs": 33,
-        "batch_size": 16,
-        "hidden_units": 32,
+        "batch_size": 32,
+        "hidden_units": 48,
         "use_gru": false,
         "units": 68,
         "dropout": 0.15387392786848297,
-        "lr": 0.008187296885701889
+        "lr": 0.00039763826011153704
     }
 }
