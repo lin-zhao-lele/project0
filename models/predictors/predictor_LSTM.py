@@ -44,6 +44,7 @@ with open(config_path, "r", encoding="utf-8") as f:
 training_path = resolve_path(config["training"], base="data")
 predict_path = resolve_path(config["predict"], base="data")
 params = config["params"]
+predict_length = config.get("predict_length", 5)       # 读取未来预测天数
 model_path = resolve_path("FinalModel_LSTM.pt", base="model")
 
 # ========== 设置设备 ==========
@@ -111,25 +112,60 @@ r2_future = r2_score(y_future, y_pred_future)
 print(f"[预测集] MSE: {mse_future:.4f}")
 print(f"[预测集] R²: {r2_future:.4f}")
 
-# ========== 保存结果 ==========
+
+# ========== 滚动预测未来 N 天 ==========
+last_window = X_future[-1]        # shape: (window_size, feature_dim)
+future_preds = []
+input_seq = last_window.copy()
+
+for _ in range(predict_length):
+    input_tensor = torch.tensor(input_seq[np.newaxis, :, :], dtype=torch.float32).to(device)
+    with torch.no_grad():
+        next_pred = model(input_tensor).cpu().numpy().flatten()[0]
+    future_preds.append(next_pred)
+
+    # 构造新一日的特征输入（只更新 close）
+    new_input = input_seq[-1].copy()
+    close_idx = 3  # 'close'列在特征中是第4列
+    new_input[close_idx] = next_pred
+
+    # 滚动窗口更新
+    input_seq = np.vstack([input_seq[1:], new_input])
+
+# 构造日期
+from datetime import datetime, timedelta
+
+last_date_str = raw_df["trade_date"].values[-1]
+last_date = datetime.strptime(str(last_date_str), "%Y%m%d")
+future_dates = [(last_date + timedelta(days=i + 1)).strftime("%Y%m%d") for i in range(predict_length)]
+
+# ========== 汇总结果 + 保存 CSV ==========
 trade_dates = raw_df["trade_date"].values[params["window_size"]:]
 pred_df = pd.DataFrame({
     "trade_date": trade_dates,
     "true_close": y_future,
     "predicted_close": y_pred_future.flatten()
 })
+
+future_df = pd.DataFrame({
+    "trade_date": future_dates,
+    "true_close": [np.nan] * predict_length,
+    "predicted_close": future_preds
+})
+
+full_df = pd.concat([pred_df, future_df], ignore_index=True)
 pred_csv = os.path.join(RESULTS_DIR, "future_predictions_LSTM.csv")
-pred_df.to_csv(pred_csv, index=False)
+full_df.to_csv(pred_csv, index=False)
 print(f"Predictions saved to {pred_csv}")
 
-# ========== 绘图保存 ==========
+# ========== 绘图 ==========
 plt.figure(figsize=(10, 4))
 plt.plot(pred_df["trade_date"], pred_df["true_close"], label="True Close")
-plt.plot(pred_df["trade_date"], pred_df["predicted_close"], label="Predicted Close")
+plt.plot(full_df["trade_date"], full_df["predicted_close"], label="Predicted Close")
 plt.xlabel("Date")
 plt.ylabel("Close Price")
 plt.xticks(rotation=45)
-plt.title("Future Stock Price Prediction")
+plt.title("Stock Price Prediction with Future Forecast")
 plt.legend()
 plt.tight_layout()
 plot_path = os.path.join(RESULTS_DIR, "future_predictions_plot_LSTM.png")
