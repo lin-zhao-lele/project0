@@ -7,6 +7,8 @@
 /module/visualization/pic/
 /models/LSTM_GRU/results/
 /models/predictors/results/
+/module/tushareAPI/pic/
+/module/tushareAPI/output/
 
 # pics
 *.png
