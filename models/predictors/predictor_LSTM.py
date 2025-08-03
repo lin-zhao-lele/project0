@@ -23,7 +23,7 @@ plt.rcParams['axes.unicode_minus'] = False
 # ========== 路径配置 ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # predictors 目录
 PROJECT_ROOT = os.path.dirname(BASE_DIR)  # 上级目录
-MODEL_DIR = os.path.join(PROJECT_ROOT, "LSTM_GRU")
+MODEL_DIR = os.path.join(PROJECT_ROOT, "predictors", "resource")
 DATA_DIR = os.path.join(os.path.dirname(PROJECT_ROOT), "data", "processed")
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "predictors", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -48,7 +48,7 @@ predict_path = resolve_path(config["predict"], base="data")
 params = config["params"]
 predict_length = config.get("predict_length", 5)       # 读取未来预测天数
 model_path = resolve_path("FinalModel_LSTM.pt", base="model")
-
+print("model_path..." + model_path)
 # ========== 设置设备 ==========
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

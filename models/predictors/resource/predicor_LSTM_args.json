@@ -5,11 +5,11 @@
     "params": {
         "window_size": 30,
         "epochs": 33,
-        "batch_size": 32,
-        "hidden_units": 64,
+        "batch_size": 16,
+        "hidden_units": 112,
         "use_gru": false,
         "units": 68,
         "dropout": 0.15387392786848297,
-        "lr": 0.004365802427094487
+        "lr": 0.000108579265319137
     }
 }
