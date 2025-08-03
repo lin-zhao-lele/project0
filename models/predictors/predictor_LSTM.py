@@ -10,6 +10,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, r2_score
 from utils import create_sequences, build_model  # 保证 utils.py 可导入
 import sys
+from datetime import datetime, timedelta
+
 
 # 字体配置（跨平台）
 if sys.platform == 'darwin':
@@ -84,7 +86,7 @@ def create_scaler_from_training(path):
     df = df_raw[['open', 'high', 'low', "close", 'vol', 'amount',
                  'turnover_rate', 'turnover_rate_f', 'volume_ratio',
                  'ma5', 'ma10', 'return_1d', 'vol_ma5']]
-    scaler = MinMaxScaler()
+    scaler = MinMaxScaler()                                     # scaler 的第 4 列（索引 3）对应 "close" 做股价还原时要用
     scaler.fit(df)
     return scaler
 
@@ -135,6 +137,7 @@ for _ in range(predict_length):
 # 构造日期
 from datetime import datetime, timedelta
 
+# ========== 构造日期 ==========
 last_date_str = raw_df["trade_date"].values[-1]
 last_date = datetime.strptime(str(last_date_str), "%Y%m%d")
 future_dates = [(last_date + timedelta(days=i + 1)).strftime("%Y%m%d") for i in range(predict_length)]
