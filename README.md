@@ -6,6 +6,10 @@
 
 The first project for Financial Analysis
 
+temp
+git rm --cached *.png
+git rm --cached *.pkl
+
 ## Project Organization
 
 ```
