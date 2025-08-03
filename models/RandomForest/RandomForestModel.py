@@ -46,7 +46,7 @@ with open(config_path, "r", encoding="utf-8") as f:
 
 training_file = resolve_path(config["training"], base="data")
 predict_file = resolve_path(config["predict"], base="data")
-model_filename = resolve_path("FinalModel_RF", base="script")
+model_filename = resolve_path("FinalModel_RF.pkl", base="script")
 
 model_only = config["model"]
 auto_tune = config.get("auto_tune", False)
