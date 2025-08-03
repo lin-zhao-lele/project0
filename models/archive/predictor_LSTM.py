@@ -23,9 +23,9 @@ plt.rcParams['axes.unicode_minus'] = False
 # ========== 路径配置 ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # predictors 目录
 PROJECT_ROOT = os.path.dirname(BASE_DIR)  # 上级目录
-MODEL_DIR = os.path.join(PROJECT_ROOT, "predictors", "resource")
+MODEL_DIR = os.path.join(PROJECT_ROOT, "archive", "resource")
 DATA_DIR = os.path.join(os.path.dirname(PROJECT_ROOT), "data", "processed")
-RESULTS_DIR = os.path.join(PROJECT_ROOT, "predictors", "results")
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "archive", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 def resolve_path(relative_path, base="project"):
@@ -162,7 +162,7 @@ full_df.to_csv(pred_csv, index=False)
 print(f"Predictions saved to {pred_csv}")
 
 # ========== 绘图 ==========
-plt.figure(figsize=(10, 4))
+plt.figure(figsize=(15, 8))
 plt.plot(pred_df["trade_date"], pred_df["true_close"], label="True Close")
 plt.plot(full_df["trade_date"], full_df["predicted_close"], label="Predicted Close")
 plt.xlabel("Date")
