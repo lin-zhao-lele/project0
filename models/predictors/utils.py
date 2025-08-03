@@ -7,6 +7,8 @@ from sklearn.metrics import mean_squared_error
 import optuna
 
 # 滑动窗口构造序列数据
+import numpy as np
+
 def create_sequences(data, window_size, target_col="close"):
     """
     data: DataFrame 或 ndarray
@@ -26,6 +28,7 @@ def create_sequences(data, window_size, target_col="close"):
             X.append(data[i:i+window_size])
             y.append(data[i+window_size][target_col if isinstance(target_col, int) else -1])  # 默认最后一列
     return np.array(X), np.array(y)
+
 
 # PyTorch LSTM 模型类
 class LSTMModel(nn.Module):
