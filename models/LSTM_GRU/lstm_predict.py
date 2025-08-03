@@ -12,6 +12,8 @@ import torch
 import torch.nn as nn
 from utils import create_sequences, build_model, tune_lstm_model
 import sys
+import joblib  # 导入joblib以保存scaler对象
+
 
 # 字体配置
 if sys.platform == 'darwin':
@@ -125,6 +127,13 @@ else:
                 optimizer.step()
 
     torch.save(model.state_dict(), model_path)
+
+
+# ========== 保存scaler对象到当前目录 ==========
+scaler_path = "scaler.joblib"
+joblib.dump(scaler, scaler_path)
+print(f"Scaler saved to {scaler_path}")
+
 
 # ========== 验证集预测 ==========
 model.eval()
