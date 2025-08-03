@@ -180,6 +180,9 @@ def main():
     else:
         print("预测数据集中未提供真实值，无法计算 MSE 和 R²")
 
+    # ========== 转换日期列为 datetime 类型 ==========
+    dates_pred = pd.to_datetime(dates_pred, format="%Y%m%d")
+
     plt.figure(figsize=(12, 6))
     plt.plot(dates_pred, y_true, label="真实收盘价", color="blue")
     plt.plot(dates_pred, y_pred_final, label="预测收盘价", color="orange", linestyle="--")

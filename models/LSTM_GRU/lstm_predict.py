@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # 非交互模式
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
@@ -173,6 +174,11 @@ pred_df.to_csv(resolve_path("results/future_predictions.csv", base="script"), in
 print("Predictions saved to \\results\\future_predictions.csv")
 
 # ========== 绘图保存 ==========
+
+# ========== 转换日期列为 datetime 类型 ==========
+pred_df["trade_date"] = pd.to_datetime(pred_df["trade_date"], format="%Y%m%d")
+
+
 plt.figure(figsize=(10, 4))
 plt.plot(pred_df["trade_date"], pred_df["true_close"], label="True Close")
 plt.plot(pred_df["trade_date"], pred_df["predicted_close"], label="Predicted Close")

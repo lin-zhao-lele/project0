@@ -178,6 +178,9 @@ if y_true is not None and len(y_true) > 0:
 else:
     print("预测数据集中无真实值，无法评估")
 
+# ========== 转换日期列为 datetime 类型 ==========
+dates_pred = pd.to_datetime(dates_pred, format="%Y%m%d")
+
 plt.figure(figsize=(12, 6))
 plt.plot(dates_pred, y_true, label="真实收盘价", color="blue")
 plt.plot(dates_pred, y_pred_final, label="预测收盘价", color="orange", linestyle="--")

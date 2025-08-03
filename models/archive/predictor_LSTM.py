@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, r2_score
 from utils import create_sequences, build_model  # 保证 utils.py 可导入
@@ -161,13 +162,22 @@ pred_csv = os.path.join(RESULTS_DIR, "future_predictions_LSTM.csv")
 full_df.to_csv(pred_csv, index=False)
 print(f"Predictions saved to {pred_csv}")
 
+# ========== 转换日期列为 datetime 类型 ==========
+pred_df["trade_date"] = pd.to_datetime(pred_df["trade_date"], format="%Y%m%d")
+full_df["trade_date"] = pd.to_datetime(full_df["trade_date"], format="%Y%m%d")
+
 # ========== 绘图 ==========
 plt.figure(figsize=(15, 8))
 plt.plot(pred_df["trade_date"], pred_df["true_close"], label="True Close")
 plt.plot(full_df["trade_date"], full_df["predicted_close"], label="Predicted Close")
 plt.xlabel("Date")
 plt.ylabel("Close Price")
-plt.xticks(rotation=45)
+
+# ========== 设置 x 轴刻度 ==========
+plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=10))  # 自动选择刻度位置，限制最大刻度数
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+plt.xticks(rotation=45, ha='right')  # 旋转刻度标签并右对齐
+
 plt.title("Stock Price Prediction with Future Forecast")
 plt.legend()
 plt.tight_layout()
