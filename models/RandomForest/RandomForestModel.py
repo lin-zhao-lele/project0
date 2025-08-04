@@ -26,6 +26,8 @@ elif sys.platform == 'win32':  # Windows
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 脚本所在目录
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))  # 工程根目录
 DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "processed")
+RESULTS_DIR = os.path.join(BASE_DIR, "results")
+
 
 def resolve_path(path_str, base="project"):
     if os.path.isabs(path_str):
@@ -67,16 +69,15 @@ def load_and_process_data(csv_path):
     df = df.dropna().reset_index(drop=True)
 
     # 动态生成特征列：排除 close, ts_code, trade_date
-    # exclude_cols = {"close", "ts_code", "trade_date"}
-    # feature_cols = [col for col in df.columns if col not in exclude_cols]
+    exclude_cols = {"close", "ts_code", "trade_date"}
+    feature_cols = [col for col in df.columns if col not in exclude_cols]
 
     # 手动构建feature_cols
     # feature_cols = ["open", "high", "low", "vol", "amount",
     #                 "ma5", "ma10", "return_1d", "vol_ma5"]
 
-    feature_cols = ['open', 'high', 'low', 'vol', 'amount',
-     'turnover_rate', 'turnover_rate_f', 'volume_ratio',
-     'ma5', 'ma10', 'return_1d', 'vol_ma5']
+    # feature_cols = ['open', 'high', 'low', 'vol', 'amount',
+    #  'turnover_rate', 'turnover_rate_f', 'volume_ratio']
 
     X = df[feature_cols]
     y = df["close"]
@@ -139,18 +140,6 @@ if not model_only:
     print(f"测试集 MSE: {mse:.4f}")
     print(f"测试集 R²: {r2:.4f}")
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(dates_test, y_test, label="真实收盘价", color="blue")
-    plt.plot(dates_test, y_pred, label="预测收盘价", color="red", linestyle="--")
-    plt.xlabel("日期")
-    plt.ylabel("收盘价")
-    plt.title("RandomForest 模型预测效果")
-    plt.legend()
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig(resolve_path("train_test_prediction_RF.png", base="script"), dpi=300)
-    plt.close()
-
 else:
     print("=== 只加载模型进行预测 ===")
     if not os.path.exists(model_filename):
@@ -184,5 +173,5 @@ plt.title("最终预测结果可视化 - RandomForest")
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig(resolve_path("final_prediction_RF.png", base="script"), dpi=300)
+plt.savefig(os.path.join(RESULTS_DIR, "final_prediction_RF.png"), dpi=300)
 plt.close()

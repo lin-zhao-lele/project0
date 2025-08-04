@@ -1,7 +1,0 @@
-{
-    "training": "600519.SH_20150101_20241231_daily_adjusted.csv",
-    "predict": "600519.SH_20250101_20250730_daily_adjusted.csv",
-    "model": false,
-    "auto_tune": true,
-    "window_size": 5
-}

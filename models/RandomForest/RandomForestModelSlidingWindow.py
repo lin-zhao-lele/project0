@@ -67,7 +67,7 @@ def load_and_process_data_sliding(csv_path, window_size):
 
     # 手动构建feature_cols
     feature_cols = ["open", "high", "low", "vol", "amount",
-                    "ma5", "ma10", "return_1d", "vol_ma5"]
+                    'turnover_rate', 'turnover_rate_f', 'volume_ratio']
 
     X, y = create_sequences_rf(df, window_size, feature_cols)
     trade_dates = df["trade_date"].iloc[window_size:].values
