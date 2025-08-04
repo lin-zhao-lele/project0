@@ -222,4 +222,34 @@ best_corr = max(correlations)
 print(f"模型预测延迟约为 {best_lag} 天，对应最大相关系数 {best_corr:.4f}")
 
 
+# ========== 生成趋势信号并回测准确率 ==========
+
+# 阈值：预测涨跌幅小于该值时忽略信号（单位：百分比）
+threshold_pct = 0.005  # 0.5%
+
+# 计算预测涨跌幅
+pred_df["predicted_change"] = pred_df["predicted_close"].diff() / pred_df["predicted_close"].shift(1)
+pred_df["true_change"] = pred_df["true_close"].diff() / pred_df["true_close"].shift(1)
+
+# 生成预测趋势信号（1 = 上涨，-1 = 下跌，0 = 无操作）
+pred_df["trend_signal"] = 0
+pred_df.loc[pred_df["predicted_change"] > threshold_pct, "trend_signal"] = 1
+pred_df.loc[pred_df["predicted_change"] < -threshold_pct, "trend_signal"] = -1
+
+# 生成真实趋势方向（用于验证）
+pred_df["true_trend"] = 0
+pred_df.loc[pred_df["true_change"] > 0, "true_trend"] = 1
+pred_df.loc[pred_df["true_change"] < 0, "true_trend"] = -1
+
+# 计算趋势方向准确率
+valid_mask = pred_df["trend_signal"] != 0
+accuracy = (pred_df.loc[valid_mask, "trend_signal"] == pred_df.loc[valid_mask, "true_trend"]).mean()
+
+print(f"趋势信号准确率（过滤小波动后）: {accuracy:.2%}")
+print(f"总信号数: {valid_mask.sum()} 条")
+
+# 保存信号文件
+trend_path = os.path.join(RESULTS_DIR, "trend_signals.csv")
+pred_df.to_csv(trend_path, index=False)
+print(f"趋势信号已保存到 {trend_path}")
 
