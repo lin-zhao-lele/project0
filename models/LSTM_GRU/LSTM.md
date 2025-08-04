@@ -97,3 +97,58 @@ R² = 0.89 在股票价格预测中算是非常高的分数，说明模型能解
 如果目标是短期交易，这个模型还可以进一步提高敏捷性；如果目标是趋势判断，现在的表现已经可以投入应用做参考信号。
 
 ```
+
+```
+
+X 和 y 都归一化：如果为了模型稳定和性能将 X 和 y 都归一化，那么：
+
+-在训练时，模型的输出层通常会预测归一化后的 y_norm。
+-在预测时，模型的输出 y_pred_norm 必须使用当初归一化 y_true 时所用的 y 的统计量来进行反归一化。
+-你可能需要为 y 单独一个 scaler 对象。
+
+# 示例：X和y都归一化
+scaler_X = MinMaxScaler()
+scaler_y = MinMaxScaler()
+ 
+# 拟合 X 和 y 的 scaler (都只在训练集上)
+scaler_X.fit(train_features)
+scaler_y.fit(train_targets) # train_targets 是你的真实值 y
+ 
+# 转换 X 和 y
+train_features_scaled = scaler_X.transform(train_features)
+train_targets_scaled = scaler_y.transform(train_targets)
+ 
+# ... LSTM 模型训练 ...
+ 
+# 预测新的 X
+new_features_scaled = scaler_X.transform(new_features)
+predicted_targets_scaled = model.predict(new_features_scaled)
+ 
+# 反归一化预测值
+predicted_targets_original = scaler_y.inverse_transform(predicted_targets_scaled)
+
+```
+
+``` 
+
+归一化方式对模型训练的影响
+
+整体归一化（特征+目标一起）
+特征和目标一起用一个 MinMaxScaler 或 StandardScaler 归一化，保证了所有输入和输出数据都在同一坐标系或比例范围内，模型更容易学习它们之间的线性和非线性关系。
+
+分开归一化（特征和目标分别独立归一化）
+特征和目标用不同的归一化器，意味着它们缩放比例和分布范围可能不一样，导致模型在学习特征映射到目标时，模型需要“猜”两组数据之间的尺度和偏移关系，难度增加，可能引起模型训练不稳定或收敛变差。
+
+整体归一化保留了数据之间的相对比例和分布特征，有利于模型捕捉到潜在的输入-输出关系。
+分开归一化后目标的缩放独立于输入，可能导致模型难以捕获复杂的时间序列动态。
+
+试试用统一的归一化器对特征和目标做整体归一化，然后训练看结果。
+
+如果必须分开归一化，确认目标归一化和特征归一化尺度差异不要过大（用相似的 feature_range，或进行数据预处理让分布更接近）。
+
+尝试调整学习率，batch size，网络层数等超参，看是否能弥补分开归一化带来的性能下降。
+
+可以加入残差连接、归一化层（BatchNorm/LayerNorm）等网络结构，缓解训练难度。
+
+确认反归一化步骤没有错误，避免人为误差导致指标变差。
+```
