@@ -17,7 +17,9 @@
 
 # Mac OS-specific storage files
 .DS_Store
-.idea
+.idea/
+/.idea/misc.xml
+/.idea/project0.iml
 
 
 # vim
