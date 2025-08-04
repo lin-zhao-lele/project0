@@ -208,4 +208,4 @@ trend_path = os.path.join(RESULTS_DIR, "lstm_inference_trend_signals.csv")
 pred_df.to_csv(trend_path, index=False)
 print(f"趋势信号已保存到 {trend_path}")
 
-plot_trend_signals_from_csv(trend_path, os.path.join(RESULTS_DIR, "trend_signals_plot.png"))
+plot_trend_signals_from_csv(trend_path, os.path.join(RESULTS_DIR, "lstm_inference_trend_signals_plot.png"))

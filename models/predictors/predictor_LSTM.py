@@ -11,8 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, r2_score
 from utils import create_sequences, build_model  # 保证 utils.py 可导入
 import sys
-from datetime import datetime, timedelta
-
+from module.visualization.pltTrend import plot_trend_signals_from_csv
 
 # 字体配置（跨平台）
 if sys.platform == 'darwin':
@@ -253,3 +252,4 @@ trend_path = os.path.join(RESULTS_DIR, "trend_signals.csv")
 pred_df.to_csv(trend_path, index=False)
 print(f"趋势信号已保存到 {trend_path}")
 
+plot_trend_signals_from_csv(trend_path, os.path.join(RESULTS_DIR, "trend_signals_plot.png"))
