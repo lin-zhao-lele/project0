@@ -54,9 +54,8 @@ def plot_trend_signals_from_csv(csv_path: str, save_path: str):
     print(f"✅ 趋势信号图已保存到 {save_path}")
 
 # ========== 路径配置 ==========
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # visualization 目录
-PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))  # project0 目录
-DATA_DIR = os.path.join(PROJECT_ROOT, "models", "predictors", "results")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "resource")
 PIC_DIR = os.path.join(BASE_DIR, "pic")
 
-plot_trend_signals_from_csv(os.path.join(DATA_DIR, "lstm_inference_trend_signals.csv"), os.path.join(PIC_DIR, "trend_signals_plot.png"))
+plot_trend_signals_from_csv(os.path.join(DATA_DIR, "trend_signals.csv"), os.path.join(PIC_DIR, "trend_signals_plot.png"))
