@@ -103,3 +103,48 @@
 
    做更多分层分析（按年份、行情涨跌区间）评估模型表现。 
 ```
+
+
+```angular2html
+
+编写python代码，用随机森林模型来预测股票价格
+数据文件 表头为 ['open', 'high', 'low', 'vol', 'amount', 'turnover_rate', 'turnover_rate_f', 'volume_ratio','ma5', 'ma10', 'return_1d', 'vol_ma5, "close"] 其中"close"为目标，
+存放位置为
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 脚本所在目录
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))  # 工程根目录
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "processed")
+，
+训练好的模型保存在当前目录模型 名为RandomForestSliding；
+定义函数
+def resolve_path(path_str, base="project"):
+    if os.path.isabs(path_str):
+        return os.path.normpath(path_str)
+    if base == "project":
+        return os.path.normpath(os.path.join(PROJECT_ROOT, path_str))
+    elif base == "script":
+        return os.path.normpath(os.path.join(BASE_DIR, path_str))
+    elif base == "data":
+        return os.path.normpath(os.path.join(DATA_DIR, path_str))
+
+使用配置文件存放输入数据的位置
+config_path = resolve_path("RandomForestSliding_args.json", base="script")；
+
+使用滑动窗口处理训练数据，使得模型可以适用于连续的时间序列，"window_size"默认为5，这个参数也放入配置json，
+的例子
+{
+    "training": "002594.SZ_20150101_20241231_daily_adjusted.csv",
+    "predict": "002594.SZ_20250101_20250730_daily_adjusted.csv",
+    "model": false,
+    "auto_tune": true
+}
+；
+"training"是训练数据集 "predict"是预测数据集；
+训练模型支持optuna自动调参，控制参数为"auto_tune": true；
+字段"model": "true 表示只加载保存在当前目录模型 RandomForestSliding 进行预测，false 表示重新训练并保存模型"；
+给出测试和预测阶段的MSE  和 R2；
+对训练数据进行必要的处理；
+
+将最终预测结果保存RandomForestSliding_inference_output.csv 并可视化存为 RandomForestSliding_inference_plot.png
+
+
+```
