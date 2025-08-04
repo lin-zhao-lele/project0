@@ -61,23 +61,23 @@ def load_and_process_data(csv_path):
     df = pd.read_csv(csv_path)
     df = df.sort_values(by="trade_date")
 
-    df["ma5"] = df["close"].rolling(window=5).mean()
-    df["ma10"] = df["close"].rolling(window=10).mean()
-    df["return_1d"] = df["close"].pct_change(1)
-    df["vol_ma5"] = df["vol"].rolling(window=5).mean()
+    # df["ma5"] = df["close"].rolling(window=5).mean()
+    # df["ma10"] = df["close"].rolling(window=10).mean()
+    # df["return_1d"] = df["close"].pct_change(1)
+    # df["vol_ma5"] = df["vol"].rolling(window=5).mean()
 
     df = df.dropna().reset_index(drop=True)
 
     # 动态生成特征列：排除 close, ts_code, trade_date
-    exclude_cols = {"close", "ts_code", "trade_date"}
-    feature_cols = [col for col in df.columns if col not in exclude_cols]
+    # exclude_cols = {"close", "ts_code", "trade_date"}
+    # feature_cols = [col for col in df.columns if col not in exclude_cols]
 
     # 手动构建feature_cols
     # feature_cols = ["open", "high", "low", "vol", "amount",
     #                 "ma5", "ma10", "return_1d", "vol_ma5"]
 
-    # feature_cols = ['open', 'high', 'low', 'vol', 'amount',
-    #  'turnover_rate', 'turnover_rate_f', 'volume_ratio']
+    feature_cols = ['open', 'high', 'low', 'vol', 'amount',
+     'turnover_rate', 'turnover_rate_f', 'volume_ratio']
 
     X = df[feature_cols]
     y = df["close"]
