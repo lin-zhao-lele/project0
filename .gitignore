@@ -14,9 +14,6 @@
 # pics
 *.png
 
-# models
-*.pt
-*.pkl
 
 # Mac OS-specific storage files
 .DS_Store
