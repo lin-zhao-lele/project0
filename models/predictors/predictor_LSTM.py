@@ -40,7 +40,7 @@ def resolve_path(relative_path, base="project"):
         return os.path.normpath(os.path.join(DATA_DIR, relative_path))
 
 # ========== 加载配置 ==========
-config_path = os.path.join(PROJECT_ROOT, "predictors", "resource", "predicor_LSTM_args.json")
+config_path = os.path.join(PROJECT_ROOT, "predictors", "resource", "FinalModel_LSTM0_args.json")
 with open(config_path, "r", encoding="utf-8") as f:
     config = json.load(f)
 
@@ -48,7 +48,7 @@ training_path = resolve_path(config["training"], base="data")
 predict_path = resolve_path(config["predict"], base="data")
 params = config["params"]
 predict_length = config.get("predict_length", 5)       # 读取未来预测天数
-model_path = resolve_path("FinalModel_LSTM.pt", base="model")
+model_path = resolve_path("FinalModel_LSTM0.pt", base="model")
 print("model_path..." + model_path)
 # ========== 设置设备 ==========
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
