@@ -8,6 +8,7 @@
 /models/LSTM_GRU/results/
 /models/predictors/results/
 /models/LinearRegression/results/
+/models/LogisticRegression/results/
 /models/ElasticNet/results/
 /models/RandomForest/results/
 /models/archive/results
