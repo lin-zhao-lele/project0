@@ -80,7 +80,7 @@ def train_model():
     
     # 使用Optuna进行超参数优化
     study = optuna.create_study(direction='minimize')
-    study.optimize(lambda trial: objective(trial, X_scaled, y), n_trials=50)
+    study.optimize(lambda trial: objective(trial, X_scaled, y), n_trials=50, show_progress_bar=True)
     
     # 输出最佳参数
     print("最佳参数:")

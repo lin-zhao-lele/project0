@@ -3,7 +3,7 @@ import numpy as np
 import os
 import joblib
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import optuna
@@ -35,27 +35,19 @@ def objective(trial, X, y):
     """
     # 定义超参数搜索空间
     params = {
-        'C': trial.suggest_float('C', 0.01, 10.0),
-        'penalty': trial.suggest_categorical('penalty', ['l1', 'l2', 'elasticnet']),
-        'solver': trial.suggest_categorical('solver', ['liblinear', 'saga']),
-        'max_iter': trial.suggest_int('max_iter', 100, 1000),
+        'n_estimators': trial.suggest_int('n_estimators', 50, 300),
+        'max_depth': trial.suggest_int('max_depth', 3, 10),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+        'subsample': trial.suggest_float('subsample', 0.5, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+        'gamma': trial.suggest_float('gamma', 0, 5),
+        'reg_alpha': trial.suggest_float('reg_alpha', 0, 5),
+        'reg_lambda': trial.suggest_float('reg_lambda', 0, 5),
         'random_state': 42
     }
     
-    # 处理特定参数组合的兼容性
-    if params['penalty'] == 'elasticnet':
-        params['solver'] = 'saga'
-        params['l1_ratio'] = trial.suggest_float('l1_ratio', 0.0, 1.0)
-    elif params['penalty'] == 'l1' and params['solver'] == 'liblinear':
-        pass  # 兼容组合
-    elif params['penalty'] == 'l2':
-        pass  # 兼容组合
-    else:
-        # 不兼容的组合，跳过
-        return float('inf')
-    
     # 创建模型
-    model = LogisticRegression(**params)
+    model = XGBClassifier(**params)
     
     # 分割数据用于交叉验证
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -79,12 +71,8 @@ def train_best_model(X, y, best_params):
     """
     使用最佳参数训练最终模型
     """
-    # 处理特定参数
-    if 'l1_ratio' not in best_params and best_params.get('penalty') == 'elasticnet':
-        best_params['l1_ratio'] = 0.5  # 默认值
-    
     # 创建模型
-    model = LogisticRegression(**best_params)
+    model = XGBClassifier(**best_params)
     
     # 训练模型
     model.fit(X, y)
