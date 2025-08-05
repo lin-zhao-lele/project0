@@ -1,10 +1,10 @@
+import os
 import sys
 
 import numpy as np
 import pandas as pd
-import os
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest, f_regression
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
@@ -15,8 +15,6 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings('ignore')
 
-
-# 判断操作系统并设置字体
 # 解决中文和负号显示问题
 if sys.platform == 'darwin':  # macOS
     plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Arial Unicode MS'] # 首选苹方，备选Arial Unicode MS（更通用，但可能需要系统安装）
@@ -52,7 +50,7 @@ def load_and_prepare_data(train_file=os.path.join(DATA_DIR, 'train_data.csv'), t
 
 def train_and_tune_model(X_train, X_test, y_train, y_test):
     """
-    训练线性回归模型，包含特征选择
+    训练ElasticNet模型，包含特征选择
     """
     # 特征选择 - 选择最重要的8个特征
     selector = SelectKBest(score_func=f_regression, k=8)
@@ -68,10 +66,25 @@ def train_and_tune_model(X_train, X_test, y_train, y_test):
     X_train_scaled = scaler.fit_transform(X_train_selected)
     X_test_scaled = scaler.transform(X_test_selected)
     
-    # 创建并训练线性回归模型
-    print("\n训练 LinearRegression 模型...")
-    model = LinearRegression()
-    model.fit(X_train_scaled, y_train)
+    # 创建ElasticNet模型并进行超参数调优
+    print("\n训练 ElasticNet 模型并进行超参数调优...")
+    elastic_net = ElasticNet()
+    
+    # 定义超参数搜索空间
+    param_grid = {
+        'alpha': [0.1, 1.0, 10.0, 100.0],
+        'l1_ratio': [0.1, 0.3, 0.5, 0.7, 0.9]
+    }
+    
+    # 使用GridSearchCV进行超参数调优
+    grid_search = GridSearchCV(elastic_net, param_grid, cv=5, scoring='r2', n_jobs=-1)
+    grid_search.fit(X_train_scaled, y_train)
+    
+    # 获取最佳模型
+    model = grid_search.best_estimator_
+    
+    print(f"最佳参数: {grid_search.best_params_}")
+    print(f"最佳交叉验证得分: {grid_search.best_score_:.4f}")
     
     # 预测
     y_train_pred = model.predict(X_train_scaled)
@@ -111,7 +124,7 @@ def plot_results(results):
     """
     可视化结果
     """
-    # 创建指标对比图（仅显示线性回归模型的结果）
+    # 创建指标对比图（仅显示ElasticNet模型的结果）
     train_r2_score = results['train_r2']
     test_r2_score = results['test_r2']
     
@@ -122,11 +135,11 @@ def plot_results(results):
     rects1 = ax.bar(x - width/2, [train_r2_score], width, label='训练集 R2')
     rects2 = ax.bar(x + width/2, [test_r2_score], width, label='测试集 R2')
     
-    ax.set_xlabel('线性回归模型')
+    ax.set_xlabel('ElasticNet模型')
     ax.set_ylabel('R2 分数')
-    ax.set_title('线性回归模型性能')
+    ax.set_title('ElasticNet模型性能')
     ax.set_xticks(x)
-    ax.set_xticklabels(['LinearRegression'])
+    ax.set_xticklabels(['ElasticNet'])
     ax.legend()
     
     # 在柱状图上添加数值标签
@@ -147,14 +160,14 @@ def plot_results(results):
     plt.show()
     
     # 直接返回模型名称
-    print("\n使用模型: LinearRegression")
+    print("\n使用模型: ElasticNet")
     
-    return 'LinearRegression'
+    return 'ElasticNet'
 
 
 def predict_with_model(results, X_test, y_test):
     """
-    使用线性回归模型进行预测并可视化结果
+    使用ElasticNet模型进行预测并可视化结果
     """
     model = results['model']
     scaler = results['scaler']
@@ -175,7 +188,7 @@ def predict_with_model(results, X_test, y_test):
     plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
     plt.xlabel('真实价格')
     plt.ylabel('预测价格')
-    plt.title('线性回归模型预测结果')
+    plt.title('ElasticNet模型预测结果')
     plt.tight_layout()
     plt.savefig(os.path.join(DATA_DIR, 'prediction_results.png'))
     plt.show()
@@ -188,7 +201,7 @@ def main():
     X_train, X_test, y_train, y_test = load_and_prepare_data()
     print("数据加载完成")
     
-    # 训练线性回归模型
+    # 训练ElasticNet模型
     results = train_and_tune_model(X_train, X_test, y_train, y_test)
     
     # 保存模型、标准化器和特征选择器
