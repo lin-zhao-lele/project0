@@ -1,0 +1,7 @@
+{
+    "training": "600519.SH_20150101_20241231_daily_adjusted.csv",
+    "predict": "600519.SH_20250101_20250730_daily_adjusted.csv",
+    "predict_length": 3,
+    "auto_tune": true,
+    "params": {}
+}
