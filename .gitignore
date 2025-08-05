@@ -6,6 +6,7 @@
 # results
 /module/visualization/pic/
 /models/LSTM_GRU/results/
+/models/LSTM/results/
 /models/predictors/results/
 /models/LinearRegression/results/
 /models/LogisticRegression/results/
