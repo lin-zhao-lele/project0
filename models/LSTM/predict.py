@@ -16,6 +16,10 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler  # 数据归一化
 import json
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from module.visualization.pltTrend import plot_trend_signals_from_csv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
@@ -225,3 +229,60 @@ if __name__ == '__main__':
     # 打印结果信息
     print(f"Predictions saved to {os.path.join(RESULTS_DIR, 'predictions.csv')}")
     print(f"Prediction MSE: {mse:.6f}")
+
+    #################################################################
+    # ========== 绘图 ==========
+    df_all_out = pd.read_csv(os.path.join(RESULTS_DIR, "predictions.csv"))
+
+    df_all_out["trade_date"] = pd.to_datetime(df_all_out["trade_date"], format="%Y%m%d")
+    plt.figure(figsize=(10, 4))
+
+    if "true_close" in df_all_out.columns:
+        plt.plot(df_all_out["trade_date"], df_all_out["true_close"], label="True Close")
+    plt.plot(df_all_out["trade_date"], df_all_out["predicted_close"], label="Predicted Close")
+
+    plt.xlabel("Date")
+    plt.ylabel("Close Price")
+    plt.title("LSTM Inference Prediction with Future Forecast")
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plot_path = os.path.join(RESULTS_DIR, "lstm_inference_plot.png")
+    plt.savefig(plot_path)
+    print(f"📊 推理图保存至 {plot_path}")
+
+
+    #################################################################
+    # 阈值：预测涨跌幅小于该值时忽略信号（单位：百分比）
+    threshold_pct = 0.005  # 0.5%
+
+    # 读取预测文件
+    pred_df = pd.read_csv(os.path.join(RESULTS_DIR, "predictions.csv"))
+
+    # 计算预测涨跌幅
+    pred_df["predicted_change"] = pred_df["predicted_close"].diff() / pred_df["predicted_close"].shift(1)
+    pred_df["true_change"] = pred_df["true_close"].diff() / pred_df["true_close"].shift(1)
+
+    # 生成预测趋势信号（1 = 上涨，-1 = 下跌，0 = 无操作）
+    pred_df["trend_signal"] = 0
+    pred_df.loc[pred_df["predicted_change"] > threshold_pct, "trend_signal"] = 1
+    pred_df.loc[pred_df["predicted_change"] < -threshold_pct, "trend_signal"] = -1
+
+    # 生成真实趋势方向（用于验证）
+    pred_df["true_trend"] = 0
+    pred_df.loc[pred_df["true_change"] > 0, "true_trend"] = 1
+    pred_df.loc[pred_df["true_change"] < 0, "true_trend"] = -1
+
+    # 计算趋势方向准确率
+    valid_mask = pred_df["trend_signal"] != 0
+    accuracy = (pred_df.loc[valid_mask, "trend_signal"] == pred_df.loc[valid_mask, "true_trend"]).mean()
+
+    print(f"趋势信号准确率（过滤小波动后）: {accuracy:.2%}")
+    print(f"总信号数: {valid_mask.sum()} 条")
+
+    # 保存信号文件
+    trend_path = os.path.join(RESULTS_DIR, "lstm_inference_trend_signals.csv")
+    pred_df.to_csv(trend_path, index=False)
+    print(f"趋势信号已保存到 {trend_path}")
+
+    plot_trend_signals_from_csv(trend_path, os.path.join(RESULTS_DIR, "lstm_inference_trend_signals_plot.png"))

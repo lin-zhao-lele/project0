@@ -17,6 +17,10 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 # ===============================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # 脚本所在目录
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))  # 工程根目录
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
+
+
+
 
 def resolve_path(path_str, base="project"):
     if os.path.isabs(path_str):
@@ -25,7 +29,8 @@ def resolve_path(path_str, base="project"):
         return os.path.normpath(os.path.join(PROJECT_ROOT, path_str))
     elif base == "script":
         return os.path.normpath(os.path.join(BASE_DIR, path_str))
-
+    elif base == "data":
+        return os.path.normpath(os.path.join(DATA_DIR, path_str))
 
 
 # 美化 Matplotlib / Seaborn 样式
@@ -36,7 +41,7 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei'] # 假设你在Windows上�
 plt.rcParams['axes.unicode_minus'] = False # 解决负号 '-' 显示为方块的问题
 
 # ===== 1. 读取数据 =====
-file_path = resolve_path("data\\raw\\600519.SH_20250101_20250730_1day_A.csv", base="project")  # 你的股票CSV文件
+file_path = resolve_path("600519.SH_20250101_20250730_1day_A.csv", base="data")  # 你的股票CSV文件
 df = pd.read_csv(file_path)
 
 # 日期格式化
