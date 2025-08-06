@@ -1,93 +1,48 @@
-# LSTM股票收盘价预测模型
+# LSTM股票价格预测模型
 
-这个项目使用LSTM神经网络模型来预测股票收盘价。项目包含训练和预测两个主要部分，并使用Optuna进行超参数优化。
+## 项目概述
+本项目使用PyTorch实现了一个简单的LSTM模型，用于股票收盘价的预测。模型采用滑动窗口技术进行单步预测，并使用Optuna进行超参数优化。
 
-## 项目结构
-
+## 文件结构
 ```
-.
-├── model_args.json     # 模型配置文件
-├── train_model.py      # 模型训练脚本
-├── predict.py          # 模型预测脚本
-├── results/            # 结果输出目录
-└── README.md           # 项目说明文件
-```
-
-## 配置文件说明
-
-`model_args.json` 包含以下配置项：
-
-- `training`: 训练数据集文件名
-- `predict`: 预测数据集文件名
-- `predict_length`: 预测长度（暂未使用）
-- `auto_tune`: 是否启用超参数优化
-- `params`: 模型参数（当`auto_tune`为false时使用）
-
-## 数据集格式
-
-CSV文件应包含以下列：
-
-```
-ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount,turnover_rate,turnover_rate_f,volume_ratio,pe,pe_ttm,pb,ps,ps_ttm,dv_ratio,total_share,float_share,free_share,total_mv,circ_mv,adj_factor,adj_close
-```
-
-其中：
-- `ts_code`: 股票代码
-- `trade_date`: 交易日期
-- `close`: 收盘价（目标变量）
-
-## 环境要求
-
-- Python 3.7+
-- PyTorch 2.2.2
-- Optuna
-- scikit-learn
-- pandas
-- numpy
-
-安装依赖：
-
-```bash
-pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2
-pip install optuna scikit-learn pandas numpy
+LSTM/
+├── processed/                # 存放数据文件
+│   ├── 600519.SH_20150101_20241231_1day_A.csv  # 训练数据
+│   └── 600519.SH_20250101_20250730_1day_A.csv  # 预测数据
+├── results/                  # 存放结果文件
+├── train_model.py            # 训练脚本
+├── predict.py                # 预测脚本
+├── model_args.json           # 配置文件
+└── README.md                 # 说明文件
 ```
 
 ## 使用方法
 
-1. 准备数据：将训练和预测数据集放在 `data/processed/` 目录下
+### 1. 准备数据
+将训练数据和预测数据放入`processed`目录，并在`model_args.json`中配置文件名。
 
-2. 训练模型：
-
+### 2. 训练模型
+运行训练脚本：
 ```bash
 python train_model.py
 ```
+训练过程将自动进行超参数优化，并记录训练时间和性能指标到`results/performance.log`。
 
-3. 进行预测：
-
+### 3. 进行预测
+运行预测脚本：
 ```bash
 python predict.py
 ```
+预测结果将保存到`results/predictions.csv`，包含日期、真实值和预测值。
 
-## 输出文件
+## 技术细节
+- **滑动窗口**: 窗口大小30天
+- **数据归一化**: 使用MinMaxScaler
+- **设备选择**: 自动检测CUDA
+- **超参数优化**: 使用Optuna
+- **评估指标**: 均方误差(MSE)
 
-所有输出文件都保存在 `results/` 目录下：
-
-- `lstm_model.pth`: 训练好的模型权重
-- `train_metrics.json`: 训练集评估指标
-- `predict_metrics.json`: 预测集评估指标
-- `predictions.csv`: 预测结果，包含交易日期、真实收盘价和预测收盘价
-- `deleted_columns.txt`: 训练过程中删除的列信息
-- `deleted_columns_predict.txt`: 预测过程中删除的列信息
-
-## 评估指标
-
-模型使用以下指标进行评估：
-
-- **MSE**: 均方误差
-- **MAE**: 平均绝对误差
-- **R2**: 决定系数
-- **Accuracy**: 准确率（基于价格变化方向）
-- **Precision**: 精确率（基于价格变化方向）
-- **Recall**: 召回率（基于价格变化方向）
-- **F1 Score**: F1分数（基于价格变化方向）
-- **AUC**: ROC曲线下面积（基于价格变化方向）
+## 注意事项
+1. 预测数据的前30天不会产生预测结果（用于构建初始窗口）
+2. 确保`processed`目录中存在指定的数据文件
+3. 所有结果文件将保存在`results`目录

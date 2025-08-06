@@ -1,216 +1,227 @@
+"""
+LSTM股票价格预测模型 - 预测脚本
+
+本脚本实现以下功能：
+1. 加载训练好的LSTM模型
+2. 加载并预处理预测数据
+3. 使用滑动窗口技术进行预测
+4. 反归一化预测结果
+5. 保存预测结果和性能指标
+
+适合初学者学习LSTM模型的预测流程
+"""
 import os
-import json
+import torch
 import numpy as np
 import pandas as pd
-import torch
-import torch.nn as nn
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, \
-    recall_score, f1_score, roc_auc_score
-from torch.utils.data import DataLoader, TensorDataset
+from sklearn.preprocessing import MinMaxScaler  # 数据归一化
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
-DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "processed")
+DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
 RESULTS_DIR = os.path.join(BASE_DIR, "results")
 
-# 设备选择
+# Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+"""
+LSTM模型定义(与train_model.py中相同)
 
-# LSTM模型定义 (与train_model.py中相同)
-class LSTMModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, output_size, dropout=0.2):
+这是一个标准的LSTM网络结构，包含以下组件：
+1. LSTM层：处理时序数据
+2. 全连接层：将LSTM输出映射到预测值
+
+参数说明：
+- input_size: 输入特征维度
+- hidden_size: LSTM隐藏层维度
+- num_layers: LSTM堆叠层数
+- output_size: 输出维度(这里预测收盘价，所以是1)
+"""
+class LSTMModel(torch.nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers, output_size):
         super(LSTMModel, self).__init__()
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=dropout)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.hidden_size = hidden_size  # LSTM隐藏层大小
+        self.num_layers = num_layers    # LSTM层数
+        # 定义LSTM层，batch_first=True表示输入数据的第一个维度是batch_size
+        self.lstm = torch.nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        # 定义全连接层，将LSTM输出映射到预测值
+        self.fc = torch.nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
+        """
+        前向传播过程
+        
+        参数:
+        x: 输入数据，形状为(batch_size, seq_len, input_size)
+        
+        返回:
+        预测值，形状为(batch_size, output_size)
+        """
+        # 初始化隐藏状态和细胞状态(全零初始化)
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
-        out, _ = self.lstm(x, (h0, c0))
+        
+        # LSTM前向传播
+        out, _ = self.lstm(x, (h0, c0))  # out形状: (batch_size, seq_len, hidden_size)
+        
+        # 只取最后一个时间步的输出，通过全连接层得到预测值
         out = self.fc(out[:, -1, :])
         return out
 
+"""
+数据加载和归一化函数
 
-def load_and_preprocess_data(file_path):
-    """加载并预处理数据"""
-    df = pd.read_csv(file_path)
-    print(f"原始数据形状: {df.shape}")
+加载预测数据并使用训练数据的归一化参数进行归一化
+确保预测数据的归一化方式与训练数据一致
 
-    # 删除包含非法值的列
-    invalid_columns = []
-    for col in df.columns:
-        if df[col].isnull().all() or df[col].dtype == 'object':
-            invalid_columns.append(col)
+参数:
+filename: 预测数据文件名
 
-    if invalid_columns:
-        print(f"删除包含非法值的列: {invalid_columns}")
-        df = df.drop(columns=invalid_columns)
-
-    # 保存删除列的信息
-    with open(os.path.join(RESULTS_DIR, "deleted_columns_predict.txt"), "w") as f:
-        f.write(f"删除的列: {invalid_columns}\n")
-
-    # 排除ts_code和trade_date，它们不是特征
-    feature_columns = [col for col in df.columns if col not in ['ts_code', 'trade_date']]
-
-    # 目标变量是close
-    target_column = 'close'
-
-    # 提取特征和目标变量
-    features = df[feature_columns].drop(columns=[target_column])
-    target = df[target_column]
-
-    print(f"特征数量: {len(features.columns)}")
-    print(f"特征列: {list(features.columns)}")
-
-    return features, target, df['trade_date']
-
-
-def create_sliding_window_dataset(features, target, window_size):
-    """创建滑动窗口数据集"""
-    X, y = [], []
-    for i in range(window_size, len(features)):
-        X.append(features[i - window_size:i].values)
-        y.append(target.iloc[i])
-    return np.array(X), np.array(y)
-
-
-def evaluate_model(model, X_test, y_test, scaler):
-    """评估模型性能"""
-    model.eval()
-    with torch.no_grad():
-        test_outputs = model(X_test)
-
-    # 反归一化
-    test_outputs = scaler.inverse_transform(test_outputs.cpu().numpy())
-    y_test_actual = scaler.inverse_transform(y_test.cpu().numpy())
-
-    # 计算评估指标
-    mse = mean_squared_error(y_test_actual, test_outputs)
-    mae = mean_absolute_error(y_test_actual, test_outputs)
-    r2 = r2_score(y_test_actual, test_outputs)
-
-    # 对于分类指标，我们需要将问题转换为分类问题
-    # 这里我们使用价格变化方向作为分类目标
-    y_test_direction = np.diff(y_test_actual, axis=0)
-    test_outputs_direction = np.diff(test_outputs, axis=0)
-
-    # 将连续值转换为分类标签 (价格上涨=1, 价格下跌=0)
-    y_test_binary = (y_test_direction > 0).astype(int)
-    test_outputs_binary = (test_outputs_direction > 0).astype(int)
-
-    # 确保两个数组长度相同
-    min_len = min(len(y_test_binary), len(test_outputs_binary))
-    y_test_binary = y_test_binary[:min_len]
-    test_outputs_binary = test_outputs_binary[:min_len]
-
-    if len(y_test_binary) > 0 and len(np.unique(y_test_binary)) > 1:
-        accuracy = accuracy_score(y_test_binary, test_outputs_binary)
-        precision = precision_score(y_test_binary, test_outputs_binary, zero_division=0)
-        recall = recall_score(y_test_binary, test_outputs_binary, zero_division=0)
-        f1 = f1_score(y_test_binary, test_outputs_binary, zero_division=0)
-
-        # 计算AUC
-        try:
-            auc = roc_auc_score(y_test_binary, test_outputs_binary)
-        except ValueError:
-            auc = float('nan')
-    else:
-        accuracy = precision = recall = f1 = auc = float('nan')
-
-    metrics = {
-        'MSE': mse,
-        'MAE': mae,
-        'R2': r2,
-        'Accuracy': accuracy,
-        'Precision': precision,
-        'Recall': recall,
-        'F1 Score': f1,
-        'AUC': auc
-    }
-
-    return metrics, test_outputs, y_test_actual
-
-
-def main():
-    # 加载配置
-    with open(os.path.join(BASE_DIR, 'model_args.json'), 'r') as f:
-        config = json.load(f)
-
-    # 加载并预处理数据
-    predict_file = os.path.join(DATA_DIR, config['predict'])
-    features, target, trade_dates = load_and_preprocess_data(predict_file)
-
-    # 加载训练时的归一化器
-    # 注意：在实际应用中，应该保存训练时的归一化器
-    # 这里我们重新拟合归一化器以演示流程
+返回:
+df: 原始数据DataFrame
+features: 归一化后的特征数据
+target: 归一化后的目标值
+feature_scaler: 特征归一化器
+target_scaler: 目标值归一化器
+"""
+def load_data_and_scalers(filename):
+    # 读取预测数据
+    df = pd.read_csv(os.path.join(DATA_DIR, filename))
+    
+    # 加载训练时使用的归一化器
     feature_scaler = MinMaxScaler()
     target_scaler = MinMaxScaler()
+    
+    # 使用训练数据拟合归一化器(确保归一化方式一致)
+    with open(os.path.join(BASE_DIR, 'model_args.json'), 'r') as f:
+        config = json.load(f)
+    
+    # 加载训练数据
+    train_df = pd.read_csv(os.path.join(DATA_DIR, config['training']))
+    train_features = train_df.drop(columns=['ts_code', 'trade_date', 'close'])
+    train_target = train_df['close'].values.reshape(-1, 1)
+    
+    # 拟合归一化器
+    feature_scaler.fit(train_features)
+    target_scaler.fit(train_target)
+    
+    # 对预测数据进行相同的归一化处理(确保列顺序与训练时一致)
+    feature_columns = ['open', 'high', 'low', 'vol', 'amount']  # 明确指定特征列顺序
+    features = df[feature_columns]
+    target = df['close'].values.reshape(-1, 1)
+    
+    features = feature_scaler.transform(features)
+    target = target_scaler.transform(target)
+    
+    return df, features, target, feature_scaler, target_scaler
 
-    features_scaled = feature_scaler.fit_transform(features)
-    target_scaled = target_scaler.fit_transform(target.values.reshape(-1, 1)).flatten()
+"""
+创建滑动窗口数据集
 
-    # 转换为DataFrame以便处理
-    features_scaled_df = pd.DataFrame(features_scaled, columns=features.columns)
-    target_scaled_series = pd.Series(target_scaled, name=target.name)
+将时序数据转换为适合LSTM预测的滑动窗口格式
+例如：用前30天的数据预测第31天的收盘价
 
-    # 获取模型参数
-    params = config['params']
-    window_size = params['window_size']
+参数:
+features: 特征数据
+target: 目标值
+window_size: 滑动窗口大小(默认30天)
 
+返回:
+X: 滑动窗口特征数据，形状为(n_samples, window_size, n_features)
+y: 对应的目标值
+"""
+def create_dataset(features, target, window_size=30):
+    X, y = [], []
+    # 从window_size开始，避免越界
+    for i in range(window_size, len(features)):
+        # 取前window_size天的特征作为输入
+        X.append(features[i-window_size:i])
+        # 第i天的收盘价作为目标
+        y.append(target[i])
+    return np.array(X), np.array(y)
+
+if __name__ == '__main__':
+    """
+    主预测流程
+    
+    1. 加载配置文件
+    2. 加载并预处理数据
+    3. 创建滑动窗口数据集
+    4. 加载模型(实际项目中应加载训练好的模型)
+    5. 进行预测
+    6. 反归一化预测结果
+    7. 保存结果和性能指标
+    """
+    # 加载配置文件
+    with open(os.path.join(BASE_DIR, 'model_args.json'), 'r') as f:
+        config = json.load(f)
+    
+    # 加载并预处理预测数据
+    df, features, target, feature_scaler, target_scaler = load_data_and_scalers(config['predict'])
+    
     # 创建滑动窗口数据集
-    X_predict, y_predict = create_sliding_window_dataset(features_scaled_df, target_scaled_series, window_size)
-
-    # 转换为PyTorch张量
-    X_predict_tensor = torch.FloatTensor(X_predict).to(device)
-    y_predict_tensor = torch.FloatTensor(y_predict).reshape(-1, 1).to(device)
-
-    # 初始化模型
-    input_size = X_predict_tensor.shape[2]
-    model = LSTMModel(input_size, params['hidden_size'], params['num_layers'], 1, params['dropout']).to(device)
-
+    X, y = create_dataset(features, target)
+    
     # 加载训练好的模型
-    model_path = os.path.join(RESULTS_DIR, 'lstm_model.pth')
-    if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path, map_location=device))
-        print(f"模型已从 {model_path} 加载")
-    else:
-        print(f"模型文件 {model_path} 不存在，请先运行训练脚本")
-        return
-
-    # 评估模型
-    metrics, predictions, actuals = evaluate_model(model, X_predict_tensor, y_predict_tensor, target_scaler)
-
-    # 保存评估指标
-    metrics_path = os.path.join(RESULTS_DIR, 'predict_metrics.json')
-    with open(metrics_path, 'w') as f:
-        json.dump(metrics, f, indent=4)
-
-    print("预测集评估指标:")
-    for key, value in metrics.items():
-        print(f"{key}: {value}")
-
-    print(f"\n评估指标已保存到: {metrics_path}")
-
-    # 保存预测结果
-    # 确保trade_dates与预测结果对齐
-    # 由于滑动窗口，我们需要跳过前window_size个数据点
-    trade_dates_aligned = trade_dates[window_size:window_size + len(predictions)]
-
-    results_df = pd.DataFrame({
-        'trade_date': trade_dates_aligned,
-        'true_close': actuals.flatten(),
-        'predicted_close': predictions.flatten()
-    })
-
-    results_path = os.path.join(RESULTS_DIR, 'predictions.csv')
-    results_df.to_csv(results_path, index=False)
-    print(f"\n预测结果已保存到: {results_path}")
-
-
-if __name__ == "__main__":
-    main()
+    input_size = X.shape[2]  # 输入特征维度
+    
+    # 从model_args.json加载训练时使用的模型参数和窗口大小
+    with open(os.path.join(BASE_DIR, 'model_args.json'), 'r') as f:
+        config = json.load(f)
+    window_size = config['window_size']  # 从配置文件读取窗口大小
+    
+    # 使用与训练时相同的模型结构
+    model = LSTMModel(input_size, 
+                     config['best_params']['hidden_size'], 
+                     config['best_params']['num_layers'], 
+                     1).to(device)
+    model.load_state_dict(torch.load(os.path.join(BASE_DIR, 'model.pth')))  # 加载模型权重
+    
+    # 进行预测
+    model.eval()  # 设置为评估模式
+    with torch.no_grad():  # 禁用梯度计算
+        X_tensor = torch.FloatTensor(X).to(device)
+        predictions = model(X_tensor).cpu().numpy()
+    
+    # 反归一化预测结果(还原为真实股价)
+    predictions = target_scaler.inverse_transform(predictions)
+    true_values = target_scaler.inverse_transform(y)
+    
+    # 准备结果
+    # 预测结果对应的是输入窗口后的第一个时间点
+    # 所以预测结果应该与原始数据的[window_size:]对应
+    results = df.copy()
+    results['true_close'] = np.nan  # 先初始化为NaN
+    results['predicted_close'] = np.nan
+    
+    # 将预测结果和真实值填充到正确位置
+    # 预测结果对应的是第window_size+1天到最后一天
+    # 注意：true_values和predictions的长度应为len(df)-window_size
+    
+    # 检查长度是否匹配
+    if len(predictions) != len(df) - window_size:
+        raise ValueError(f"预测结果长度不匹配: predictions长度={len(predictions)}, 预期长度={len(df)-window_size}")
+    
+    # 填充真实值和预测值
+    start_idx = window_size
+    end_idx = len(df)  # 填充到最后一天
+    results.iloc[start_idx:end_idx, results.columns.get_loc('true_close')] = true_values.flatten()
+    results.iloc[start_idx:end_idx, results.columns.get_loc('predicted_close')] = predictions.flatten()
+    
+    # 确保前window_size天没有预测值
+    results.iloc[:window_size, results.columns.get_loc('predicted_close')] = np.nan
+    
+    # 按日期排序并保存预测结果
+    results = results.sort_values('trade_date')
+    results[['trade_date', 'true_close', 'predicted_close']].to_csv(
+        os.path.join(RESULTS_DIR, 'predictions.csv'), index=False)
+    
+    # 计算并记录均方误差(MSE)
+    mse = np.mean((results['true_close'] - results['predicted_close'])**2)
+    with open(os.path.join(RESULTS_DIR, 'performance.log'), 'a') as f:
+        f.write(f"Prediction MSE: {mse:.6f}\n")
+    
+    # 打印结果信息
+    print(f"Predictions saved to {os.path.join(RESULTS_DIR, 'predictions.csv')}")
+    print(f"Prediction MSE: {mse:.6f}")
