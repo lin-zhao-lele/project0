@@ -257,5 +257,5 @@ if __name__ == '__main__':
         optimizer.step()
     
     # 保存模型
-    torch.save(best_model.state_dict(), os.path.join(BASE_DIR, 'model.pth'))
+    torch.save(best_model.state_dict(), os.path.join(RESULTS_DIR, 'model.pth'))
     print("Model saved to model.pth")

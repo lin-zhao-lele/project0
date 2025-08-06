@@ -176,7 +176,7 @@ if __name__ == '__main__':
                      config['best_params']['hidden_size'], 
                      config['best_params']['num_layers'], 
                      1).to(device)
-    model.load_state_dict(torch.load(os.path.join(BASE_DIR, 'model.pth')))  # 加载模型权重
+    model.load_state_dict(torch.load(os.path.join(RESULTS_DIR, 'model.pth')))  # 加载模型权重
     
     # 进行预测
     model.eval()  # 设置为评估模式

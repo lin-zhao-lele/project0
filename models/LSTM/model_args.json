@@ -3,10 +3,10 @@
     "predict": "600519.SH_20250101_20250730_1day_A.csv",
     "window_size": 30,
     "best_params": {
-        "hidden_size": 132,
-        "num_layers": 1,
-        "learning_rate": 0.006833305013178625,
-        "batch_size": 118,
-        "num_epochs": 88
+        "hidden_size": 211,
+        "num_layers": 2,
+        "learning_rate": 0.001171472224228192,
+        "batch_size": 98,
+        "num_epochs": 66
     }
 }
