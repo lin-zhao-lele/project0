@@ -1,3 +1,5 @@
+import sys
+
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -8,9 +10,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# 解决中文乱码和负号问题
-matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-matplotlib.rcParams['axes.unicode_minus'] = False
+def set_chinese_font():
+    if sys.platform == 'darwin':
+        plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Arial Unicode MS']
+    elif sys.platform == 'win32':
+        plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+    else:
+        plt.rcParams['font.sans-serif'] = ['Arial']
+    plt.rcParams['axes.unicode_minus'] = False
 
 # ===============================
 # 路径配置
@@ -18,7 +25,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # 脚本所在目录
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))  # 工程根目录
 DATA_DIR = os.path.join(os.path.join(PROJECT_ROOT, "data"), "raw")
-
+PIC_DIR = os.path.join(BASE_DIR, "pic")
 
 
 
@@ -37,8 +44,7 @@ def resolve_path(path_str, base="project"):
 plt.style.use("seaborn-v0_8-darkgrid")
 sns.set_theme(style="whitegrid", palette="muted")
 
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei'] # 假设你在Windows上，使用微软雅黑
-plt.rcParams['axes.unicode_minus'] = False # 解决负号 '-' 显示为方块的问题
+
 
 # ===== 1. 读取数据 =====
 file_path = resolve_path("600519.SH_20250101_20250730_1day_A.csv", base="data")  # 你的股票CSV文件
@@ -110,11 +116,11 @@ fig_candle = go.Figure(data=[go.Candlestick(
 fig_candle.add_trace(go.Scatter(x=df['trade_date'], y=df['MA5'], mode='lines', name='MA5', line=dict(color='orange')))
 fig_candle.add_trace(go.Scatter(x=df['trade_date'], y=df['MA20'], mode='lines', name='MA20', line=dict(color='blue')))
 fig_candle.add_trace(go.Scatter(x=df['trade_date'], y=df['MA60'], mode='lines', name='MA60', line=dict(color='purple')))
-fig_candle.update_layout(title="K线图 + 均线", template="plotly_dark", xaxis_rangeslider_visible=False)
+fig_candle.update_layout(title="Candlestick chart + Moving Averages", template="plotly_dark", xaxis_rangeslider_visible=False)
 fig_candle.show()
 
 # --- 3.2 成交量 ---
-fig_vol = px.bar(df, x='trade_date', y='vol', title="成交量变化", template="plotly_dark")
+fig_vol = px.bar(df, x='trade_date', y='vol', title="Volume change", template="plotly_dark")
 fig_vol.show()
 
 # --- 3.3 MACD ---
@@ -122,9 +128,9 @@ plt.figure(figsize=(12,5))
 plt.bar(df['trade_date'], df['Hist'], color=np.where(df['Hist']>=0, 'red', 'green'))
 plt.plot(df['trade_date'], df['MACD'], label='MACD', color='blue')
 plt.plot(df['trade_date'], df['Signal'], label='Signal', color='orange')
-plt.title("MACD 指标")
+plt.title("MACD index")
 plt.legend()
-plt.savefig(".\\pic\\MACD 指标.jpg", dpi=300)
+plt.savefig(os.path.join(PIC_DIR, "MACD 指标.jpg"), dpi=300)
 # plt.show()
 
 # --- 3.4 RSI ---
@@ -132,8 +138,8 @@ plt.figure(figsize=(12,3))
 plt.plot(df['trade_date'], df['RSI'], color='purple')
 plt.axhline(70, color='red', linestyle='--')
 plt.axhline(30, color='green', linestyle='--')
-plt.title("RSI 相对强弱指数")
-plt.savefig(".\\pic\\RSI 相对强弱指数.jpg", dpi=300)
+plt.title("RSI (Relative Strength Index)")
+plt.savefig(os.path.join(PIC_DIR, "相对强弱指数.jpg"), dpi=300)
 # plt.show()
 
 # --- 3.5 布林带 ---
@@ -143,30 +149,30 @@ plt.plot(df['trade_date'], df['BB_Mid'], label='Middle', color='orange')
 plt.plot(df['trade_date'], df['BB_Upper'], label='Upper', color='green')
 plt.plot(df['trade_date'], df['BB_Lower'], label='Lower', color='red')
 plt.fill_between(df['trade_date'], df['BB_Upper'], df['BB_Lower'], color='lightgray', alpha=0.3)
-plt.title("布林带 (Bollinger Bands)")
+plt.title("Bollinger Bands")
 plt.legend()
-plt.savefig(".\\pic\\布林带.jpg", dpi=300)
+plt.savefig(os.path.join(PIC_DIR, "布林带.jpg"), dpi=300)
 # plt.show()
 
 # --- 3.6 收盘价分布 ---
 plt.figure(figsize=(8,5))
 sns.histplot(df['close'], kde=True, color="royalblue")
-plt.title("收盘价分布")
-plt.savefig(".\\pic\\收盘价分布.jpg", dpi=300)
+plt.title("Closing price distribution")
+plt.savefig(os.path.join(PIC_DIR, "收盘价分布.jpg"), dpi=300)
 # plt.show()
 
 # --- 3.7 涨跌幅时间序列 ---
 plt.figure(figsize=(12,5))
 sns.lineplot(x='trade_date', y='pct_change', data=df, color="crimson")
 plt.axhline(0, color='black', linestyle="--")
-plt.title("日涨跌幅 (%)")
-plt.savefig(".\\pic\\日涨跌幅.jpg", dpi=300)
+plt.title("Daily change (%)")
+plt.savefig(os.path.join(PIC_DIR, "日涨跌幅.jpg"), dpi=300)
 # plt.show()
 
 # --- 3.8 成交量与价格关系 ---
 plt.figure(figsize=(8,5))
 sns.scatterplot(x='vol', y='close', data=df, color="teal")
-plt.title("成交量 vs 收盘价")
-plt.savefig(".\\pic\\成交量 vs 收盘价.jpg", dpi=300)
+plt.title("Volume vs. Closing Price")
+plt.savefig(os.path.join(PIC_DIR, "成交量 vs 收盘价.jpg"), dpi=300)
 # plt.show()
 
