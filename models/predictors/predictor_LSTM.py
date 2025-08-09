@@ -224,7 +224,7 @@ print(f"模型预测延迟约为 {best_lag} 天，对应最大相关系数 {best
 # ========== 生成趋势信号并回测准确率 ==========
 
 # 阈值：预测涨跌幅小于该值时忽略信号（单位：百分比）
-threshold_pct = 0.005  # 0.5%
+threshold_pct = 0.01  # 0.5%
 
 # 计算预测涨跌幅
 pred_df["predicted_change"] = pred_df["predicted_close"].diff() / pred_df["predicted_close"].shift(1)

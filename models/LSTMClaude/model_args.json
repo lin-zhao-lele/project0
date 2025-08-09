@@ -6,8 +6,8 @@
     "best_params": {
         "hidden_size": 256,
         "num_layers": 1,
-        "dropout": 0.14403315132807812,
-        "learning_rate": 0.0006822089223552405,
+        "dropout": 0.4096358293115252,
+        "learning_rate": 0.0007158998916092561,
         "batch_size": 32
     }
 }
