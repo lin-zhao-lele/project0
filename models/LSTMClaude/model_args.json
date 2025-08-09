@@ -1,0 +1,13 @@
+{
+    "training": "600519.SH_20150101_20241231_daily_adjusted.csv",
+    "predict": "600519.SH_20250101_20250730_daily_adjusted.csv",
+    "debugLog": false,
+    "window_size": 30,
+    "best_params": {
+        "hidden_size": 256,
+        "num_layers": 1,
+        "dropout": 0.14403315132807812,
+        "learning_rate": 0.0006822089223552405,
+        "batch_size": 32
+    }
+}
